@@ -37,12 +37,11 @@ const imageSchema = new mongoose.Schema(
 imageSchema.index({ entity_type: 1, entity_id: 1 });
 
 // El slug se genera a partir del alt_text o, si no existe, del tipo de entidad
-imageSchema.pre("validate", function (next) {
+imageSchema.pre("validate", function () {
   if (!this.slug) {
     const base = this.alt_text || `${this.entity_type}-${this.entity_id}`;
     this.slug = `${generateSlug(base)}-${new mongoose.Types.ObjectId().toString().slice(-6)}`;
   }
-  next();
 });
 
 const Image = mongoose.model("Image", imageSchema);

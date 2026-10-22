@@ -35,11 +35,10 @@ const userSchema = new mongoose.Schema(
 );
 
 // El slug del usuario se genera desde el email (único) para evitar colisiones entre nombres iguales
-userSchema.pre("save", function (next) {
+userSchema.pre("save", function () {
   if (this.email && (!this.slug || this.isModified("email"))) {
     this.slug = generateSlug(this.email.split("@")[0] + "-" + this.email.split("@")[1]);
   }
-  next();
 });
 
 const User = mongoose.model("User", userSchema);

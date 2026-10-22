@@ -36,11 +36,10 @@ const baseOptions = {
 
 // Plugin: genera el slug a partir de `sourceField` si no existe o si ese campo cambia
 function slugPlugin(schema, { sourceField }) {
-  schema.pre("save", function (next) {
+  schema.pre("save", function () {
     if (this[sourceField] && (!this.slug || this.isModified(sourceField))) {
       this.slug = generateSlug(this.slug || this[sourceField]);
     }
-    next();
   });
 }
 
