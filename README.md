@@ -162,38 +162,17 @@ Cada producto dentro del sistema maneja los siguientes campos:
 | Campo | Tipo | Requerido | Descripción / Validación |
 | --- | --- | --- | --- |
 | `_id` / `id` | `ObjectId` | Auto | Identificador único del producto.
-
- |
 | `nombre` | `String` | Sí | Nombre del producto (mín. 2 caracteres).
-
- |
 | `categoria` | `String` | Sí | Categoría del producto.
-
- |
 | `precio` | `Number` | Sí | Valor numérico `≥ 0`.
-
- |
 | `stock` | `Number` | Sí | Número entero `≥ 0`.
-
- |
 | `marca` | `String` | Sí | Marca comercial del producto.
-
- |
 | `descripcion` | `String` | Sí | Descripción detallada.
-
- |
 | `slug` | `String` | Auto | Generado automáticamente a partir del nombre.
-
- |
 | `isActive` | `Boolean` | No | Indica si el producto está activo para la venta (por defecto `false`).
-
- |
 | `status` | `String` | No | Estado funcional (`active`, `inactive`, etc., por defecto `"inactive"`).
-
- |
 | `deletedAt` | `Date / null` | No | Fecha de borrado para borrado lógico (*soft delete*).
 
- |
 
 ---
 
@@ -203,39 +182,17 @@ Base path: `http://localhost:3000/api/products`
 
 | Método | Endpoint | Descripción |
 | --- | --- | --- |
-| `GET` | `/` | Lista todos los productos (incluidos inactivos/eliminados lógicamente).
-
- |
-| `GET` | `/is-active` | Lista únicamente productos activos (`isActive: true` y `deletedAt: null`).
-
- |
-| `GET` | `/:id` | Obtiene un producto por su `_id`.
-
- |
-| `GET` | `/slug/:slug` | Obtiene un producto por su `slug`.
-
- |
-| `POST` | `/` | Crea un nuevo producto (validado con esquema Zod).
-
- |
-| `PUT` | `/:id` | Actualización completa del producto.
-
- |
-| `PATCH` | `/:id/soft-delete` | **Borrado lógico:** asigna `deletedAt` y marca `isActive: false`.
-
- |
-| `PATCH` | `/:id/restore` | **Restaurar:** limpia `deletedAt` y establece `isActive: true`.
-
- |
-| `PATCH` | `/:id/status` | Modifica el estado funcional (`status`) del producto.
-
- |
-| `PATCH` | `/:id/is-active` | Alterna o actualiza el flag de `isActive`.
-
- |
-| `DELETE` | `/:id` | **Eliminación física permanente** (*hard delete*).
-
- |
+| `GET` | `/` | Lista todos los productos (incluidos inactivos/eliminados lógicamente).|
+| `GET` | `/is-active` | Lista únicamente productos activos (`isActive: true` y `deletedAt: null`).|
+| `GET` | `/:id` | Obtiene un producto por su `_id`.|
+| `GET` | `/slug/:slug` | Obtiene un producto por su `slug`.|
+| `POST` | `/` | Crea un nuevo producto (validado con esquema Zod).|
+| `PUT` | `/:id` | Actualización completa del producto.|
+| `PATCH` | `/:id/soft-delete` | **Borrado lógico:** asigna `deletedAt` y marca `isActive: false`.|
+| `PATCH` | `/:id/restore` | **Restaurar:** limpia `deletedAt` y establece `isActive: true`.|
+| `PATCH` | `/:id/status` | Modifica el estado funcional (`status`) del producto.|
+| `PATCH` | `/:id/is-active` | Alterna o actualiza el flag de `isActive`.|
+| `DELETE` | `/:id` | **Eliminación física permanente** (*hard delete*).|
 
 ### Rutas de Utilidad del Backend
 
