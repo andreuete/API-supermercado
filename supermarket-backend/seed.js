@@ -9,10 +9,10 @@
  */
 const mongoose = require("mongoose");
 const crypto = require("crypto");
-const { Category, Brand, Product, Image, Role, User } = require("./models");
-const { generateSlug } = require("./utils/slug");
+const { Category, Brand, Product, Image, Role, User } = require("./src/models");
+const { generateSlug } = require("./src/utils/slug");
 
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/supermercado";
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/supermarket";
 
 // ---------- Utilidades ----------
 function hashPassword(plain) {

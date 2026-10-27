@@ -8,6 +8,12 @@ const swaggerUi = require("swagger-ui-express");
 
 const connectDB = require("./config/database");
 const productRoutes = require("./routes/product.routes");
+const brandRoutes = require("./routes/brand.routes");
+const categoryRoutes = require("./routes/category.routes");
+const imageRoutes = require("./routes/image.routes");
+const roleRoutes = require("./routes/role.routes");
+const userRoutes = require("./routes/user.routes");
+const variantRoutes = require("./routes/variant.routes");
 const { notFound, errorHandler } = require("./utils/errorHandler");
 const swaggerSpec = require("./config/swagger");
 
@@ -32,6 +38,12 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/api/products", productRoutes);
+app.use("/api/brands", brandRoutes);
+app.use("/api/categories", categoryRoutes);
+app.use("/api/images", imageRoutes);
+app.use("/api/roles", roleRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/products/:productId/variants", variantRoutes);
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
