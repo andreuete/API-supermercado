@@ -34,7 +34,6 @@ export function useProducts({ autoLoad = true } = {}) {
 
   const createProduct = (payload) => runMutation(() => productService.create(payload), 'Producto creado correctamente.')
   const updateProduct = (id, payload) => runMutation(() => productService.update(id, payload), 'Producto actualizado correctamente.')
-  const deleteProduct = (id) => runMutation(() => productService.remove(id), 'Producto eliminado definitivamente.')
   const softDeleteProduct = (id) => runMutation(() => productService.softDelete(id), 'Producto enviado a la papelera.')
   const restoreProduct = (id) => runMutation(() => productService.restore(id), 'Producto restaurado.')
   const changeStatus = (id, status) => runMutation(() => productService.updateStatus(id, status), 'Estado actualizado.')
@@ -57,7 +56,7 @@ export function useProducts({ autoLoad = true } = {}) {
 
   return {
     ...context, mutating, selectedProduct, setSelectedProduct, getProduct,
-    createProduct, updateProduct, deleteProduct, softDeleteProduct, restoreProduct, changeStatus, toggleActive,
+    createProduct, updateProduct, softDeleteProduct, restoreProduct, changeStatus, toggleActive,
     refresh: context.refresh,
   }
 }

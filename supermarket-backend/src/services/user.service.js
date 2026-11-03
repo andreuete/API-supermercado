@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const userRepository = require("../repositories/user.repository");
+const { hashPassword } = require("../utils/password");
 
 function validateId(id) {
   if (!id || !mongoose.Types.ObjectId.isValid(id)) {
@@ -18,9 +19,7 @@ function validateSlug(slug) {
 }
 
 async function createUser(data) {
-  // TODO: Hashear la contraseña con bcrypt antes de guardar
-  // Ejemplo: data.password = await bcrypt.hash(data.password, 10);
-  return userRepository.create(data);
+  return userRepository.create({ ...data, password: hashPassword(data.password) });
 }
 
 async function getUsers(filter) {
@@ -81,8 +80,7 @@ async function updateUser(id, data) {
   validateId(id);
 
   const updateData = { ...data };
-  // TODO: Si se envía password, hashearla con bcrypt antes de guardar
-  // Ejemplo: if (updateData.password) { updateData.password = await bcrypt.hash(updateData.password, 10); }
+  if (updateData.password) updateData.password = hashPassword(updateData.password);
 
   const user = await userRepository.updateById(id, updateData);
 
@@ -98,7 +96,7 @@ async function updateUser(id, data) {
 async function deleteUser(id) {
   validateId(id);
 
-  const user = await userRepository.deleteById(id);
+  const user = await userRepository.softDelete(id);
 
   if (!user) {
     const error = new Error("Usuario no encontrado");

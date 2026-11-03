@@ -74,7 +74,7 @@ async function updateBrand(id, data) {
 async function deleteBrand(id) {
   validateId(id);
 
-  const brand = await brandRepository.deleteById(id);
+  const brand = await brandRepository.softDelete(id);
 
   if (!brand) {
     const error = new Error("Marca no encontrada");

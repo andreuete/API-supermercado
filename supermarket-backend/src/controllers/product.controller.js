@@ -59,7 +59,7 @@ async function deleteProduct(req, res, next) {
     const product = await productService.deleteProduct(req.params.id);
     res.json({
       success: true,
-      message: "Producto eliminado correctamente",
+      message: "Producto marcado como eliminado correctamente",
       data: product
     });
   } catch (error) {

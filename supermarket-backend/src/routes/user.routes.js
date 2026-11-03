@@ -178,7 +178,7 @@ router.put("/:id", validateMongoId, validateBody(updateUserSchema), controller.u
  * @swagger
  * /api/users/{id}:
  *   delete:
- *     summary: Eliminar usuario definitivamente (hard delete)
+ *     summary: Eliminar usuario (borrado lógico)
  *     tags: [Users]
  *     parameters:
  *       - in: path
@@ -188,7 +188,7 @@ router.put("/:id", validateMongoId, validateBody(updateUserSchema), controller.u
  *           type: string
  *     responses:
  *       200:
- *         description: Usuario eliminado definitivamente
+ *         description: Usuario marcado como eliminado
  *       400:
  *         description: ID inválido
  *       404:

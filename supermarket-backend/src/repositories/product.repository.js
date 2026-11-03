@@ -42,10 +42,6 @@ class ProductRepository {
     });
   }
 
-  async deleteById(id) {
-    return Product.findByIdAndDelete(id);
-  }
-
   async softDelete(id) {
     return Product.findByIdAndUpdate(
       id,

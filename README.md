@@ -192,7 +192,7 @@ Base path: `http://localhost:3000/api/products`
 | `PATCH` | `/:id/restore` | **Restaurar:** limpia `deletedAt` y establece `isActive: true`.|
 | `PATCH` | `/:id/status` | Modifica el estado funcional (`status`) del producto.|
 | `PATCH` | `/:id/is-active` | Alterna o actualiza el flag de `isActive`.|
-| `DELETE` | `/:id` | **Eliminación física permanente** (*hard delete*).|
+| `DELETE` | `/:id` | Borrado lógico: marca el producto como eliminado y permite restaurarlo.|
 
 ### Rutas de Utilidad del Backend
 
@@ -205,7 +205,7 @@ Base path: `http://localhost:3000/api/products`
 
 - **Gestión CRUD Completa:** Crear, editar, ver detalle y consultar productos con navegación fluida.
 - **Filtros y Búsqueda:** Búsqueda en tiempo real por texto, filtros por estado y paginación.
-- **Gestión Avanzada de Estados:** Soporte para alternar estado activo/inactivo, modificar estados personalizados, borrado lógico, restauración y borrado físico permanente con confirmación mediante SweetAlert2.
+- **Gestión Avanzada de Estados:** Soporte para alternar estado activo/inactivo, modificar estados personalizados, borrado lógico y restauración.
 - **Formularios Robustos:** Validación cliente-servidor sincronizada con Zod y React Hook Form.
 - **Feedback de Usuario:** Pantallas de carga con Skeletons, manejo de errores descriptivo y notificaciones informativas.
 - **Rendimiento:** Separación de código (*code splitting*) mediante `React.lazy` y `Suspense`.

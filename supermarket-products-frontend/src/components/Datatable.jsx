@@ -3,8 +3,21 @@ import { Link } from 'react-router-dom'
 import { Search, ChevronLeft, ChevronRight, Eye, Pencil, Trash2, RotateCcw, Power, MoreHorizontal, Package, ArrowUpDown } from 'lucide-react'
 
 const getId = (p) => p?.id ?? p?._id
-const isDeleted = (p) => Boolean(p?.deletedAt) || ['deleted', 'deleted_at', 'soft-deleted'].includes(String(p?.status || '').toLowerCase())
-const isActive = (p) => p?.isActive === true || String(p?.status).toLowerCase() === 'active'
+const getVariants = (p) => Array.isArray(p?.variants) ? p.variants : []
+const getPrice = (p) => getVariants(p).reduce((min, variant) => Math.min(min, Number(variant.price)), Infinity)
+const getStock = (p) => getVariants(p).reduce((total, variant) => total + Number(variant.stock || 0), 0)
+const getCategoryName = (p) => p?.category?.name || ''
+const getBrandName = (p) => p?.brand?.name || ''
+const isDeleted = (p) => Boolean(p?.deleted_at) || ['deleted', 'deleted_at', 'soft-deleted'].includes(String(p?.status || '').toLowerCase())
+const isActive = (p) => p?.is_active === true || String(p?.status).toLowerCase() === 'published'
+const formatPrice = (p) => {
+  const prices = getVariants(p).map((variant) => Number(variant.price)).filter(Number.isFinite)
+  if (!prices.length) return '—'
+  const min = Math.min(...prices)
+  const max = Math.max(...prices)
+  const format = (price) => price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })
+  return min === max ? format(min) : `${format(min)} – ${format(max)}`
+}
 
 function StatusBadge({ product }) {
   const deleted = isDeleted(product)
@@ -14,22 +27,28 @@ function StatusBadge({ product }) {
   return <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${style}`}><span className="h-1.5 w-1.5 rounded-full bg-current" />{label}</span>
 }
 
-export default function Datatable({ products = [], loading, onSoftDelete, onRestore, onDelete, onToggleActive, onChangeStatus }) {
+export default function Datatable({ products = [], loading, onSoftDelete, onRestore, onToggleActive, onChangeStatus }) {
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('all')
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(8)
-  const [sort, setSort] = useState({ key: 'nombre', direction: 'asc' })
+  const [sort, setSort] = useState({ key: 'name', direction: 'asc' })
   const filtered = useMemo(() => {
     const q = search.toLocaleLowerCase().trim()
     return products.filter((p) => {
-      const matches = !q || [p.nombre, p.categoria, p.marca, p.slug].some((v) => String(v || '').toLocaleLowerCase().includes(q))
+      const matches = !q || [p.name, getCategoryName(p), getBrandName(p), p.slug].some((v) => String(v || '').toLocaleLowerCase().includes(q))
       const deleted = isDeleted(p)
       const matchesStatus = status === 'all' || (status === 'active' && !deleted && isActive(p)) || (status === 'inactive' && !deleted && !isActive(p)) || (status === 'deleted' && deleted)
       return matches && matchesStatus
     }).sort((a, b) => {
-      const av = a?.[sort.key] ?? ''
-      const bv = b?.[sort.key] ?? ''
+      const getSortValue = (product) => ({
+        name: product?.name,
+        category: getCategoryName(product),
+        price: getPrice(product),
+        stock: getStock(product),
+      })[sort.key] ?? ''
+      const av = getSortValue(a)
+      const bv = getSortValue(b)
       const cmp = typeof av === 'number' && typeof bv === 'number' ? av - bv : String(av).localeCompare(String(bv), 'es', { numeric: true })
       return sort.direction === 'asc' ? cmp : -cmp
     })
@@ -52,7 +71,7 @@ export default function Datatable({ products = [], loading, onSoftDelete, onRest
     <div className="overflow-x-auto">
       <table className="w-full min-w-[850px] text-left text-sm">
         <thead className="bg-slate-50/80 text-xs uppercase tracking-wider text-slate-400"><tr>
-          {[['nombre','Producto'],['categoria','Categoría'],['precio','Precio'],['stock','Stock']].map(([key,label]) => <th key={key} className="px-6 py-4 font-semibold"><button className="inline-flex items-center gap-1.5 hover:text-slate-700" onClick={() => toggleSort(key)}>{label}<ArrowUpDown size={12} /></button></th>)}
+          { [['name','Producto'],['category','Categoría'],['price','Precio'],['stock','Stock']].map(([key,label]) => <th key={key} className="px-6 py-4 font-semibold"><button className="inline-flex items-center gap-1.5 hover:text-slate-700" onClick={() => toggleSort(key)}>{label}<ArrowUpDown size={12} /></button></th>)}
           <th className="px-6 py-4 font-semibold">Estado</th><th className="px-6 py-4 text-right font-semibold">Acciones</th>
         </tr></thead>
         <tbody className="divide-y divide-slate-100">
@@ -60,10 +79,10 @@ export default function Datatable({ products = [], loading, onSoftDelete, onRest
           rows.length ? rows.map((p) => {
             const id = getId(p); const deleted = isDeleted(p)
             return <tr key={id} className="transition hover:bg-slate-50/70">
-              <td className="px-6 py-4"><div className="flex items-center gap-3"><div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-emerald-50 text-brand"><Package size={18} /></div><div><div className="font-semibold text-slate-800">{p.nombre || 'Sin nombre'}</div><div className="mt-0.5 text-xs text-slate-400">{p.marca || 'Sin marca'}</div></div></div></td>
-              <td className="px-6 py-4 text-slate-500">{p.categoria || '—'}</td>
-              <td className="px-6 py-4 font-semibold tabular-nums">{Number(p.precio || 0).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</td>
-              <td className="px-6 py-4"><span className={`font-semibold ${Number(p.stock) <= 5 ? 'text-amber-600' : 'text-slate-700'}`}>{p.stock ?? 0}</span><span className="ml-1 text-xs text-slate-400">uds.</span></td>
+              <td className="px-6 py-4"><div className="flex items-center gap-3"><div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-emerald-50 text-brand"><Package size={18} /></div><div><div className="font-semibold text-slate-800">{p.name || 'Sin nombre'}</div><div className="mt-0.5 text-xs text-slate-400">{getBrandName(p) || 'Sin marca'}</div></div></div></td>
+              <td className="px-6 py-4 text-slate-500">{getCategoryName(p) || '—'}</td>
+              <td className="px-6 py-4 font-semibold tabular-nums">{formatPrice(p)}</td>
+              <td className="px-6 py-4"><span className={`font-semibold ${getStock(p) <= 5 ? 'text-amber-600' : 'text-slate-700'}`}>{getStock(p)}</span><span className="ml-1 text-xs text-slate-400">uds.</span></td>
               <td className="px-6 py-4"><StatusBadge product={p} /></td>
               <td className="px-6 py-4"><div className="flex items-center justify-end gap-1">
                 <Link title="Ver detalle" to={`/products/${id}`} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><Eye size={16} /></Link>
@@ -73,7 +92,6 @@ export default function Datatable({ products = [], loading, onSoftDelete, onRest
                   <button title="Cambiar status" onClick={() => onChangeStatus(p)} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><MoreHorizontal size={16} /></button>
                   <button title="Enviar a papelera" onClick={() => onSoftDelete(p)} className="rounded-lg p-2 text-rose-500 hover:bg-rose-50"><Trash2 size={16} /></button>
                 </>}
-                <button title="Borrado físico" onClick={() => onDelete(p)} className="rounded-lg p-2 text-slate-300 hover:bg-rose-50 hover:text-rose-700"><Trash2 size={16} /></button>
               </div></td>
             </tr>
           }) : <tr><td colSpan="6" className="px-6 py-16 text-center"><div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-slate-50 text-slate-400"><Package size={22} /></div><p className="font-semibold text-slate-700">No hay productos para mostrar</p><p className="mt-1 text-sm text-slate-400">Prueba otro filtro o registra un producto nuevo.</p></td></tr>}

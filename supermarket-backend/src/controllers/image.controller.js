@@ -69,7 +69,7 @@ async function deleteImage(req, res, next) {
     const image = await imageService.deleteImage(req.params.id);
     res.json({
       success: true,
-      message: "Imagen eliminada correctamente",
+      message: "Imagen marcada como eliminada correctamente",
       data: image
     });
   } catch (error) {

@@ -18,11 +18,18 @@ function validateSlug(slug) {
 }
 
 async function createProduct(data) {
-  return productRepository.create(data);
+  const product = await productRepository.create(data);
+
+  if (!product) {
+    const error = new Error("Producto no encontrado");
+    error.statusCode = 404;
+    throw error;
+  }
 }
 
 async function getProducts(filter) {
   return productRepository.findAll(filter);
+  
 }
 
 async function getProductById(id) {
@@ -60,6 +67,9 @@ async function getActiveProducts() {
 
 async function updateProduct(id, data) {
   validateId(id);
+  if (data.slug !== undefined) {
+    validateSlug(data.slug);
+  }
 
   const product = await productRepository.updateById(id, data);
 
@@ -75,7 +85,7 @@ async function updateProduct(id, data) {
 async function deleteProduct(id) {
   validateId(id);
 
-  const product = await productRepository.deleteById(id);
+  const product = await productRepository.softDelete(id);
 
   if (!product) {
     const error = new Error("Producto no encontrado");

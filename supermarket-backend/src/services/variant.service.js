@@ -17,6 +17,26 @@ function validateSku(sku) {
   }
 }
 
+function validatePriceAndStock(data) {
+  if (data.price !== undefined && (!Number.isFinite(data.price) || data.price < 0)) {
+    const error = new Error(
+      Number.isFinite(data.price) ? "El precio no puede ser negativo" : "El precio debe ser un número"
+    );
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (data.stock !== undefined && (!Number.isInteger(data.stock) || data.stock < 0)) {
+    const error = new Error(
+      Number.isInteger(data.stock)
+        ? "El stock no puede ser negativo"
+        : "El stock debe ser un número entero"
+    );
+    error.statusCode = 400;
+    throw error;
+  }
+}
+
 async function getVariants(productId) {
   validateProductId(productId);
 
@@ -63,6 +83,7 @@ async function addVariant(productId, data) {
 async function updateVariant(productId, sku, data) {
   validateProductId(productId);
   validateSku(sku);
+  validatePriceAndStock(data);
 
   const result = await variantRepository.updateBySku(productId, sku, data);
 

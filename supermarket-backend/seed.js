@@ -200,10 +200,15 @@ async function seed() {
   await mongoose.connect(MONGODB_URI);
   console.log(`Conectado a ${MONGODB_URI}`);
 
-  // Limpieza (y reconstrucción de índices por si cambiaron)
-  await Promise.all([Category, Brand, Product, Image, Role, User].map((M) => M.deleteMany({})));
-  await Promise.all([Category, Brand, Product, Image, Role, User].map((M) => M.syncIndexes()));
-  console.log("Colecciones limpiadas");
+  const collections = [Category, Brand, Product, Image, Role, User];
+  const documentCounts = await Promise.all(collections.map((model) => model.countDocuments()));
+  if (documentCounts.some((count) => count > 0)) {
+    throw new Error("La base de datos no está vacía; el seed no modifica ni elimina datos existentes.");
+  }
+
+  // Reconstrucción de índices por si cambiaron
+  await Promise.all(collections.map((model) => model.syncIndexes()));
+  console.log("Índices sincronizados");
 
   // Roles
   const roles = await Role.create(rolesData);

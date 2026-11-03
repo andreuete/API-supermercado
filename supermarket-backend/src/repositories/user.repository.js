@@ -34,10 +34,6 @@ class UserRepository {
       .populate("role_ids", "name slug permissions");
   }
 
-  async deleteById(id) {
-    return User.findByIdAndDelete(id);
-  }
-
   async softDelete(id) {
     return User.findByIdAndUpdate(
       id,

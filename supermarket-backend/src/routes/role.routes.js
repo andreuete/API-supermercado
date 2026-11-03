@@ -165,7 +165,7 @@ router.put("/:id", validateMongoId, validateBody(updateRoleSchema), controller.u
  * @swagger
  * /api/roles/{id}:
  *   delete:
- *     summary: Eliminar rol definitivamente (hard delete)
+ *     summary: Eliminar rol (borrado lógico)
  *     tags: [Roles]
  *     parameters:
  *       - in: path
@@ -175,7 +175,7 @@ router.put("/:id", validateMongoId, validateBody(updateRoleSchema), controller.u
  *           type: string
  *     responses:
  *       200:
- *         description: Rol eliminado definitivamente
+ *         description: Rol marcado como eliminado
  *       400:
  *         description: ID inválido
  *       404:

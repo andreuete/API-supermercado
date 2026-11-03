@@ -142,7 +142,7 @@ router.put("/:id", validateMongoId, validateBody(updateProductSchema), controlle
  * @swagger
  * /api/products/{id}:
  *   delete:
- *     summary: Eliminar producto definitivamente (hard delete)
+ *     summary: Eliminar producto (borrado lógico)
  *     tags: [Products]
  *     parameters:
  *       - in: path
@@ -152,7 +152,7 @@ router.put("/:id", validateMongoId, validateBody(updateProductSchema), controlle
  *           type: string
  *     responses:
  *       200:
- *         description: Producto eliminado definitivamente
+ *         description: Producto marcado como eliminado
  *       400:
  *         description: ID inválido
  *       404:

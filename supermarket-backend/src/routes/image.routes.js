@@ -194,7 +194,7 @@ router.put("/:id", validateMongoId, validateBody(updateImageSchema), controller.
  * @swagger
  * /api/images/{id}:
  *   delete:
- *     summary: Eliminar imagen definitivamente (hard delete)
+ *     summary: Eliminar imagen (borrado lógico)
  *     tags: [Images]
  *     parameters:
  *       - in: path
@@ -204,7 +204,7 @@ router.put("/:id", validateMongoId, validateBody(updateImageSchema), controller.
  *           type: string
  *     responses:
  *       200:
- *         description: Imagen eliminada definitivamente
+ *         description: Imagen marcada como eliminada
  *       400:
  *         description: ID inválido
  *       404:

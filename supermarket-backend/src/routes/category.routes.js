@@ -165,7 +165,7 @@ router.put("/:id", validateMongoId, validateBody(updateCategorySchema), controll
  * @swagger
  * /api/categories/{id}:
  *   delete:
- *     summary: Eliminar categoría definitivamente (hard delete)
+ *     summary: Eliminar categoría (borrado lógico)
  *     tags: [Categories]
  *     parameters:
  *       - in: path
@@ -175,7 +175,7 @@ router.put("/:id", validateMongoId, validateBody(updateCategorySchema), controll
  *           type: string
  *     responses:
  *       200:
- *         description: Categoría eliminada definitivamente
+ *         description: Categoría marcada como eliminada
  *       400:
  *         description: ID inválido
  *       404:

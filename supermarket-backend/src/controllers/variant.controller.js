@@ -54,7 +54,7 @@ async function removeVariant(req, res, next) {
     const result = await variantService.removeVariant(productId, sku);
     res.json({
       success: true,
-      message: "Variante eliminada correctamente",
+      message: "Variante marcada como eliminada correctamente",
       data: result
     });
   } catch (error) {

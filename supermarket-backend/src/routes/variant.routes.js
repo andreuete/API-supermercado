@@ -163,7 +163,7 @@ router.put("/:sku", validateBody(updateVariantSchema), controller.updateVariant)
  * @swagger
  * /api/products/{productId}/variants/{sku}:
  *   delete:
- *     summary: Eliminar variante definitivamente (hard delete)
+ *     summary: Eliminar variante (borrado lógico)
  *     tags: [Variants]
  *     parameters:
  *       - in: path
@@ -178,7 +178,7 @@ router.put("/:sku", validateBody(updateVariantSchema), controller.updateVariant)
  *           type: string
  *     responses:
  *       200:
- *         description: Variante eliminada correctamente
+ *         description: Variante marcada como eliminada
  *       400:
  *         description: ID o SKU inválido
  *       404:

@@ -74,7 +74,7 @@ async function updateRole(id, data) {
 async function deleteRole(id) {
   validateId(id);
 
-  const role = await roleRepository.deleteById(id);
+  const role = await roleRepository.softDelete(id);
 
   if (!role) {
     const error = new Error("Rol no encontrado");

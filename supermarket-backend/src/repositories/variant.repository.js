@@ -37,14 +37,9 @@ class VariantRepository {
     ).select("variants");
   }
 
-  // Elimina una variante por SKU (hard delete)
+  // Mantiene la variante dentro del producto para que pueda restaurarse.
   async removeBySku(productId, sku) {
-    const upperSku = sku.toUpperCase();
-    return Product.findByIdAndUpdate(
-      productId,
-      { $pull: { variants: { sku: upperSku } } },
-      { new: true }
-    ).select("variants");
+    return this.softDeleteBySku(productId, sku);
   }
 
   // Soft delete de una variante

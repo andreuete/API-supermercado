@@ -59,7 +59,7 @@ async function deleteRole(req, res, next) {
     const role = await roleService.deleteRole(req.params.id);
     res.json({
       success: true,
-      message: "Rol eliminado correctamente",
+      message: "Rol marcado como eliminado correctamente",
       data: role
     });
   } catch (error) {

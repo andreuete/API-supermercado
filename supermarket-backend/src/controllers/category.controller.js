@@ -59,7 +59,7 @@ async function deleteCategory(req, res, next) {
     const category = await categoryService.deleteCategory(req.params.id);
     res.json({
       success: true,
-      message: "Categoría eliminada correctamente",
+      message: "Categoría marcada como eliminada correctamente",
       data: category
     });
   } catch (error) {

@@ -1,8 +1,10 @@
 import Swal from 'sweetalert2'
 
 const base = {
-  confirmButtonColor: '#246b50',
-  cancelButtonColor: '#e8ece9',
+  background: '#1F1F1F',
+  color: '#F0F0F0',
+  confirmButtonColor: '#7d3a85',
+  cancelButtonColor: '#313131',
   customClass: { popup: 'rounded-2xl', confirmButton: 'rounded-xl', cancelButton: 'rounded-xl' },
 }
 

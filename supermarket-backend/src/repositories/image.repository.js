@@ -29,10 +29,6 @@ class ImageRepository {
     return Image.findByIdAndUpdate(id, data, { new: true, runValidators: true });
   }
 
-  async deleteById(id) {
-    return Image.findByIdAndDelete(id);
-  }
-
   async softDelete(id) {
     return Image.findByIdAndUpdate(
       id,

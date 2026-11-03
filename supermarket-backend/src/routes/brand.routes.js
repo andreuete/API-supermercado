@@ -158,7 +158,7 @@ router.put("/:id", validateMongoId, validateBody(updateBrandSchema), controller.
  * @swagger
  * /api/brands/{id}:
  *   delete:
- *     summary: Eliminar marca definitivamente (hard delete)
+ *     summary: Eliminar marca (borrado lógico)
  *     tags: [Brands]
  *     parameters:
  *       - in: path
@@ -168,7 +168,7 @@ router.put("/:id", validateMongoId, validateBody(updateBrandSchema), controller.
  *           type: string
  *     responses:
  *       200:
- *         description: Marca eliminada definitivamente
+ *         description: Marca marcada como eliminada
  *       400:
  *         description: ID inválido
  *       404:

@@ -43,10 +43,6 @@ class CategoryRepository {
       .populate("parent_id", "name slug");
   }
 
-  async deleteById(id) {
-    return Category.findByIdAndDelete(id);
-  }
-
   async softDelete(id) {
     return Category.findByIdAndUpdate(
       id,

@@ -59,7 +59,7 @@ async function deleteUser(req, res, next) {
     const user = await userService.deleteUser(req.params.id);
     res.json({
       success: true,
-      message: "Usuario eliminado correctamente",
+      message: "Usuario marcado como eliminado correctamente",
       data: user
     });
   } catch (error) {

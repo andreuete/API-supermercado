@@ -32,10 +32,6 @@ export const productService = {
     const response = await apiClient.put(`/${idPath(id)}`, payload)
     return unwrap(response)
   },
-  async remove(id) {
-    const response = await apiClient.delete(`/${idPath(id)}`)
-    return unwrap(response)
-  },
   async softDelete(id) {
     const response = await apiClient.patch(`/${idPath(id)}/soft-delete`)
     return unwrap(response)

@@ -90,7 +90,7 @@ async function updateImage(id, data) {
 async function deleteImage(id) {
   validateId(id);
 
-  const image = await imageRepository.deleteById(id);
+  const image = await imageRepository.softDelete(id);
 
   if (!image) {
     const error = new Error("Imagen no encontrada");

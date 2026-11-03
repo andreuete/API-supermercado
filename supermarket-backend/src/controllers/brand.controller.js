@@ -59,7 +59,7 @@ async function deleteBrand(req, res, next) {
     const brand = await brandService.deleteBrand(req.params.id);
     res.json({
       success: true,
-      message: "Marca eliminada correctamente",
+      message: "Marca marcada como eliminada correctamente",
       data: brand
     });
   } catch (error) {

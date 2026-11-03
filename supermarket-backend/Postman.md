@@ -326,7 +326,7 @@ Response `200`:
 
 ---
 
-## 11. Eliminar permanentemente (hard delete)
+## 11. Eliminar (borrado lógico)
 
 **DELETE** `/api/products/:id`
 
@@ -335,13 +335,18 @@ Response `200`:
 ```json
 {
   "success": true,
-  "message": "Producto eliminado correctamente",
+  "message": "Producto marcado como eliminado correctamente",
   "data": {
     "_id": "67d1f8f5b3a1a2b3c4d5e6f7",
-    "nombre": "Yogur natural"
+    "nombre": "Yogur natural",
+    "deletedAt": "2026-10-08T20:30:00.000Z",
+    "isActive": false
   }
 }
 ```
+
+El producto permanece en la base de datos y se puede restaurar mediante
+`PATCH /api/products/:id/restore`.
 
 ---
 

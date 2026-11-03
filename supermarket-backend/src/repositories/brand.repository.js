@@ -38,10 +38,6 @@ class BrandRepository {
     return Brand.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
   }
 
-  async deleteById(id) {
-    return Brand.findByIdAndDelete(id);
-  }
-
   async softDelete(id) {
     return Brand.findByIdAndUpdate(
       id,

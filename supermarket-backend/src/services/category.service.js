@@ -74,7 +74,7 @@ async function updateCategory(id, data) {
 async function deleteCategory(id) {
   validateId(id);
 
-  const category = await categoryRepository.deleteById(id);
+  const category = await categoryRepository.softDelete(id);
 
   if (!category) {
     const error = new Error("Categoría no encontrada");

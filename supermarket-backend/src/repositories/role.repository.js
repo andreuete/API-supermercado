@@ -38,10 +38,6 @@ class RoleRepository {
     return Role.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
   }
 
-  async deleteById(id) {
-    return Role.findByIdAndDelete(id);
-  }
-
   async softDelete(id) {
     return Role.findByIdAndUpdate(
       id,
