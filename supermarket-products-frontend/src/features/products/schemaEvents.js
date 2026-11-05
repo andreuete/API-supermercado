@@ -11,6 +11,11 @@ export const productSchema = z.object({
   price: z.coerce.number().finite('El precio debe ser un número válido.').min(0, 'El precio no puede ser negativo.'),
   stock: z.coerce.number().int('El stock debe ser un número entero.').min(0, 'El stock no puede ser negativo.'),
   description: z.string().trim().default(''),
+  images: z.array(
+    z.object({
+      url: z.string().trim().url('Introduce una URL de imagen válida.'),
+    })
+  ).default([]),
   sku: z.string().trim().optional(),
   is_active: z.boolean().optional(),
   status: z.string().optional(),
@@ -23,6 +28,7 @@ export const productDefaults = {
   price: 0,
   stock: 0,
   description: '',
+  images: [],
   sku: '',
   is_active: true,
   status: 'published',

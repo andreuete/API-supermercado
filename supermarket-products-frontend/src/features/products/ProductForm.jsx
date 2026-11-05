@@ -1,11 +1,40 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowLeft, Save } from 'lucide-react'
+import { ArrowLeft, ImagePlus, Save, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { productDefaults, productSchema } from './schemaEvents'
 import productReferencesService from '../../services/productReferencesService'
 import { getErrorMessage, logApiError } from '../../utils/errorHandler'
+
+function ProductImagePreview({ src, alt }) {
+  const [previewSrc, setPreviewSrc] = useState('')
+  const [failed, setFailed] = useState(false)
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setPreviewSrc(src || '')
+      setFailed(false)
+    }, 300)
+
+    return () => window.clearTimeout(timeout)
+  }, [src])
+
+  return (
+    <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-slate-50 text-slate-400">
+      {src && previewSrc === src && !failed ? (
+        <img
+          src={previewSrc}
+          alt={alt}
+          className="h-full w-full object-cover"
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        <ImagePlus size={20} aria-hidden="true" />
+      )}
+    </div>
+  )
+}
 
 function getInitialFormValues(product, categories = [], brands = []) {
   if (!product) return productDefaults
@@ -38,6 +67,9 @@ function getInitialFormValues(product, categories = [], brands = []) {
     price: Number(firstVariant?.price ?? (prices.length ? Math.min(...prices) : (product.price ?? product.precio ?? 0))),
     stock: Number(firstVariant?.stock ?? (product.stock ?? variantStock)),
     description: product.description ?? product.descripcion ?? '',
+    images: Array.isArray(product.images)
+      ? product.images.map((image) => ({ url: typeof image === 'string' ? image : image?.url || '' }))
+      : [],
     sku: firstVariant?.sku || '',
     is_active: product.is_active ?? product.isActive ?? true,
     status: product.status || 'published',
@@ -52,6 +84,7 @@ export default function ProductForm({ initialValues, onSubmit, submitting = fals
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting }
@@ -59,6 +92,11 @@ export default function ProductForm({ initialValues, onSubmit, submitting = fals
     resolver: zodResolver(productSchema),
     defaultValues: getInitialFormValues(initialValues, [], []),
   })
+  const { fields: imageFields, append: appendImage, remove: removeImage } = useFieldArray({
+    control,
+    name: 'images',
+  })
+  const imageValues = useWatch({ control, name: 'images' }) || []
 
   const loadReferences = useCallback(async () => {
     setReferencesLoading(true)
@@ -152,6 +190,12 @@ export default function ProductForm({ initialValues, onSubmit, submitting = fals
         name: selectedBrand.name,
       },
       variants,
+      images: values.images.map(({ url }) => {
+        const existingImage = Array.isArray(initialValues?.images)
+          ? initialValues.images.find((image) => image?.url === url)
+          : null
+        return { url: url.trim(), alt_text: existingImage?.alt_text || '' }
+      }),
       is_active: values.is_active ?? true,
       status: values.status || 'published',
     }
@@ -347,6 +391,65 @@ export default function ProductForm({ initialValues, onSubmit, submitting = fals
             className="field resize-y"
           />
           <p className="mt-1.5 text-xs text-slate-400">Descripción detallada del producto.</p>
+        </div>
+
+        {/* Imágenes */}
+        <div className="md:col-span-2">
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <div>
+              <span className="field-label">Imágenes del producto</span>
+              <p className="text-xs text-slate-400">Añade una o varias URL de imágenes. No se suben archivos.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => appendImage({ url: '' })}
+              className="btn-secondary shrink-0"
+            >
+              <ImagePlus size={16} /> Añadir URL
+            </button>
+          </div>
+
+          {imageFields.length === 0 ? (
+            <p className="rounded-xl border border-dashed border-slate-200 px-4 py-5 text-center text-sm text-slate-500">
+              Aún no has añadido imágenes.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {imageFields.map((field, index) => (
+                <div key={field.id} className="flex items-start gap-2">
+                  <ProductImagePreview
+                    src={imageValues[index]?.url?.trim()}
+                    alt={`Vista previa de imagen ${index + 1}`}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <label className="sr-only" htmlFor={`images.${index}.url`}>
+                      URL de la imagen {index + 1}
+                    </label>
+                    <input
+                      id={`images.${index}.url`}
+                      type="url"
+                      placeholder="https://ejemplo.com/imagen.jpg"
+                      {...register(`images.${index}.url`)}
+                      className={`field ${errors.images?.[index]?.url ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-50' : ''}`}
+                      aria-invalid={Boolean(errors.images?.[index]?.url)}
+                    />
+                    {errors.images?.[index]?.url && (
+                      <p className="mt-1.5 text-xs text-rose-600">{errors.images[index].url.message}</p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeImage(index)}
+                    className="btn-secondary shrink-0 p-3 text-rose-600"
+                    aria-label={`Eliminar URL de imagen ${index + 1}`}
+                    title="Eliminar imagen"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
