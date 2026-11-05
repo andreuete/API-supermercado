@@ -45,8 +45,8 @@ export default function AppLayout() {
         <p className="text-xs leading-5 text-slate-500">Mantén tu catálogo actualizado y controla el estado de cada producto.</p>
       </div>
     </aside>
-    <div className="lg:pl-64">
-      <header className="sticky top-4 z-10 mx-4 mt-4 flex h-16 items-center justify-between rounded-2xl border border-slate-100 bg-white/90 px-4 shadow-soft backdrop-blur md:px-6">
+    <div className="lg:pl-64 pt-4">
+      <header className="sticky top-4 z-10 mx-4 flex h-16 items-center justify-between rounded-2xl border border-slate-100 bg-white/90 px-4 shadow-soft backdrop-blur md:px-6">
         <div className="flex items-center gap-3">
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-emerald-50 text-brand lg:hidden"><ShoppingBasket size={19} /></span>
           <div><div className="text-xs font-medium text-slate-400">Mercado / {sectionLabel}</div><h1 className="mt-0.5 text-base font-bold">{title}</h1></div>

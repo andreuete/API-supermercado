@@ -2,10 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: dark; font-family: Manrope, ui-sans-serif, system-ui, sans-serif; color: #F0F0F0; background: #000000; font-synthesis: none; text-rendering: optimizeLegibility; font-variant-numeric: tabular-nums; }
+:root { color-scheme: dark; font-family: Manrope, ui-sans-serif, system-ui, sans-serif; color: #F0F0F0; background: #181818; font-synthesis: none; text-rendering: optimizeLegibility; font-variant-numeric: tabular-nums; }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-body { margin: 0; min-width: 320px; min-height: 100dvh; background: #000000; }
+body { margin: 0; min-width: 320px; min-height: 100dvh; background: #181818; }
 button, input, select, textarea { font: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 2px solid #7d3a85; outline-offset: 2px; }
