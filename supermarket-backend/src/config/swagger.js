@@ -6,7 +6,7 @@ const options = {
     info: {
       title: "Supermarket Products API",
       version: "1.0.0",
-      description: "API REST para gestionar productos de supermercado."
+      description: "API REST para gestionar productos y catálogo de supermercado con soporte para variantes, categorías jerárquicas, marcas e imágenes."
     },
     servers: [
       {
@@ -16,54 +16,111 @@ const options = {
     ],
     components: {
       schemas: {
+        RefSnapshot: {
+          type: "object",
+          required: ["id", "slug", "name"],
+          properties: {
+            id: { type: "string", example: "672bb1a8f3b2c1a4e5d6f789" },
+            slug: { type: "string", example: "lacteos" },
+            name: { type: "string", example: "Lácteos" }
+          }
+        },
+        EmbeddedImage: {
+          type: "object",
+          required: ["url"],
+          properties: {
+            url: { type: "string", example: "https://cdn.supermercado.com/products/leche-entera-1.jpg" },
+            alt_text: { type: "string", example: "Leche entera - vista principal" }
+          }
+        },
+        Variant: {
+          type: "object",
+          required: ["sku", "price", "stock"],
+          properties: {
+            sku: { type: "string", example: "LECH-ENT-1L" },
+            price: { type: "number", format: "float", minimum: 0, example: 1.15 },
+            stock: { type: "integer", minimum: 0, example: 240 },
+            attributes: {
+              type: "object",
+              example: { volumen: "1 L", unidades: 1 }
+            },
+            is_active: { type: "boolean", example: true },
+            status: { type: "string", example: "published" },
+            deleted_at: { type: "string", format: "date-time", nullable: true, example: null }
+          }
+        },
+        VariantInput: {
+          type: "object",
+          required: ["sku", "price", "stock"],
+          properties: {
+            sku: { type: "string", example: "LECH-ENT-1L" },
+            price: { type: "number", format: "float", minimum: 0, example: 1.15 },
+            stock: { type: "integer", minimum: 0, example: 240 },
+            attributes: {
+              type: "object",
+              example: { volumen: "1 L", unidades: 1 }
+            },
+            is_active: { type: "boolean", example: true },
+            status: { type: "string", example: "published" }
+          }
+        },
         Product: {
           type: "object",
-          required: ["nombre", "categoria", "precio", "stock", "marca", "descripcion"],
+          required: ["name", "description", "category", "brand"],
           properties: {
-            _id: { type: "string", example: "67d1f8f5b3a1a2b3c4d5e6f7" },
-            nombre: { type: "string", example: "Leche entera" },
-            categoria: { type: "string", example: "Lácteos" },
-            precio: { type: "number", format: "float", minimum: 0, example: 1.25 },
-            stock: { type: "integer", minimum: 0, example: 40 },
-            marca: { type: "string", example: "Central Lechera" },
-            descripcion: { type: "string", example: "Leche entera pasteurizada." },
+            _id: { type: "string", example: "672bb1a8f3b2c1a4e5d6f701" },
+            name: { type: "string", example: "Leche entera" },
+            description: { type: "string", example: "Leche de vaca entera UHT. Fuente de calcio y proteínas." },
+            category: { $ref: "#/components/schemas/RefSnapshot" },
+            brand: { $ref: "#/components/schemas/RefSnapshot" },
+            variants: {
+              type: "array",
+              items: { $ref: "#/components/schemas/Variant" }
+            },
+            images: {
+              type: "array",
+              items: { $ref: "#/components/schemas/EmbeddedImage" }
+            },
             slug: { type: "string", example: "leche-entera" },
-            isActive: { type: "boolean", example: false },
-            status: { type: "string", example: "inactive" },
-            createdAt: { type: "string", format: "date-time", nullable: true, example: null },
-            updatedAt: { type: "string", format: "date-time", nullable: true, example: null },
-            deletedAt: { type: "string", format: "date-time", nullable: true, example: null }
+            is_active: { type: "boolean", example: true },
+            status: { type: "string", example: "published" },
+            deleted_at: { type: "string", format: "date-time", nullable: true, example: null },
+            created_at: { type: "string", format: "date-time", example: "2026-11-05T18:00:00.000Z" },
+            updated_at: { type: "string", format: "date-time", example: "2026-11-05T18:00:00.000Z" }
           }
         },
         ProductInput: {
           type: "object",
-          required: ["nombre", "categoria", "precio", "stock", "marca", "descripcion"],
+          required: ["name", "description", "category", "brand"],
           properties: {
-            nombre: { type: "string", example: "Leche entera" },
-            categoria: { type: "string", example: "Lácteos" },
-            precio: { type: "number", format: "float", minimum: 0, example: 1.25 },
-            stock: { type: "integer", minimum: 0, example: 40 },
-            marca: { type: "string", example: "Central Lechera" },
-            descripcion: { type: "string", example: "Leche entera pasteurizada." },
+            name: { type: "string", example: "Leche entera" },
+            description: { type: "string", example: "Leche de vaca entera UHT. Fuente de calcio y proteínas." },
+            category: { $ref: "#/components/schemas/RefSnapshot" },
+            brand: { $ref: "#/components/schemas/RefSnapshot" },
+            variants: {
+              type: "array",
+              items: { $ref: "#/components/schemas/VariantInput" }
+            },
+            images: {
+              type: "array",
+              items: { $ref: "#/components/schemas/EmbeddedImage" }
+            },
             slug: { type: "string", example: "leche-entera" },
-            isActive: { type: "boolean", example: false },
-            status: { type: "string", example: "active" },
-            createdAt: { type: "string", format: "date-time", nullable: true },
-            updatedAt: { type: "string", format: "date-time", nullable: true },
-            deletedAt: { type: "string", format: "date-time", nullable: true }
+            is_active: { type: "boolean", example: true },
+            status: { type: "string", example: "published" }
           }
         },
         ChangeStatusInput: {
           type: "object",
           required: ["status"],
           properties: {
-            status: { type: "string", example: "active" }
+            status: { type: "string", example: "published" }
           }
         },
         IsActiveInput: {
           type: "object",
           properties: {
-            isActive: { type: "boolean", example: true }
+            is_active: { type: "boolean", example: true }
           }
         },
         Error: {

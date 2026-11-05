@@ -4,8 +4,8 @@ const { generateSlug } = require("../models/product.model");
 class ProductRepository {
   async create(data) {
     const productData = { ...data };
-    if (!productData.slug && productData.nombre) {
-      productData.slug = generateSlug(productData.nombre);
+    if (!productData.slug && productData.name) {
+      productData.slug = generateSlug(productData.name);
     } else if (productData.slug) {
       productData.slug = generateSlug(productData.slug);
     }
@@ -13,7 +13,7 @@ class ProductRepository {
   }
 
   async findAll(filter = {}) {
-    return Product.find(filter).sort({ createdAt: -1, _id: -1 });
+    return Product.find(filter).sort({ created_at: -1, _id: -1 });
   }
 
   async findById(id) {
@@ -25,13 +25,13 @@ class ProductRepository {
   }
 
   async findActive() {
-    return Product.find({ isActive: true, deletedAt: null }).sort({ createdAt: -1, _id: -1 });
+    return Product.find({ is_active: true, deleted_at: null }).sort({ created_at: -1, _id: -1 });
   }
 
   async updateById(id, data) {
-    const updateData = { ...data, updatedAt: new Date() };
-    if (updateData.nombre && !updateData.slug) {
-      updateData.slug = generateSlug(updateData.nombre);
+    const updateData = { ...data };
+    if (updateData.name && !updateData.slug) {
+      updateData.slug = generateSlug(updateData.name);
     } else if (updateData.slug) {
       updateData.slug = generateSlug(updateData.slug);
     }
@@ -46,9 +46,8 @@ class ProductRepository {
     return Product.findByIdAndUpdate(
       id,
       {
-        deletedAt: new Date(),
-        isActive: false,
-        updatedAt: new Date()
+        deleted_at: new Date(),
+        is_active: false
       },
       {
         new: true,
@@ -61,9 +60,8 @@ class ProductRepository {
     return Product.findByIdAndUpdate(
       id,
       {
-        deletedAt: null,
-        isActive: true,
-        updatedAt: new Date()
+        deleted_at: null,
+        is_active: true
       },
       {
         new: true,
@@ -76,8 +74,7 @@ class ProductRepository {
     return Product.findByIdAndUpdate(
       id,
       {
-        status,
-        updatedAt: new Date()
+        status
       },
       {
         new: true,
@@ -86,12 +83,11 @@ class ProductRepository {
     );
   }
 
-  async setIsActive(id, isActive) {
+  async setIsActive(id, is_active) {
     return Product.findByIdAndUpdate(
       id,
       {
-        isActive,
-        updatedAt: new Date()
+        is_active
       },
       {
         new: true,

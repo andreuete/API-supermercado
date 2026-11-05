@@ -12,14 +12,58 @@ export default function Edit() {
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+
   useEffect(() => {
     let alive = true
-    setLoading(true); setError('')
-    getProduct(id).then((data) => { if (alive) setProduct(data) }).catch((e) => { if (alive) setError(e?.response?.data?.message || 'No se pudo cargar el producto.') }).finally(() => { if (alive) setLoading(false) })
-    return () => { alive = false }
+    setLoading(true)
+    setError('')
+    getProduct(id)
+      .then((data) => {
+        if (alive) setProduct(data)
+      })
+      .catch((e) => {
+        if (alive) setError(e?.response?.data?.message || 'No se pudo cargar el producto.')
+      })
+      .finally(() => {
+        if (alive) setLoading(false)
+      })
+    return () => {
+      alive = false
+    }
   }, [id])
-  const submit = async (values) => { await updateProduct(id, values); navigate('/') }
-  if (loading) return <div className="mx-auto max-w-3xl panel"><FormSkeleton /></div>
-  if (error || !product) return <ErrorState title="No se pudo abrir el producto" message={error || 'El producto no existe.'} onRetry={() => window.location.reload()} />
-  return <div className="mx-auto max-w-3xl"><div className="mb-6"><h2 className="text-2xl font-bold">Editar producto</h2><p className="mt-1 text-sm text-slate-500">Modifica los datos de {product.nombre || product.name}.</p></div><ProductForm initialValues={product} mode="edit" onSubmit={submit} submitting={mutating} /></div>
+
+  const submit = async (values) => {
+    await updateProduct(id, values)
+    navigate('/')
+  }
+
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-3xl panel">
+        <FormSkeleton />
+      </div>
+    )
+  }
+
+  if (error || !product) {
+    return (
+      <ErrorState
+        title="No se pudo abrir el producto"
+        message={error || 'El producto no existe.'}
+        onRetry={() => window.location.reload()}
+      />
+    )
+  }
+
+  return (
+    <div className="mx-auto max-w-3xl">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold">Editar producto</h2>
+        <p className="mt-1 text-sm text-slate-500">
+          Modifica los datos de {product.name || product.nombre}.
+        </p>
+      </div>
+      <ProductForm initialValues={product} mode="edit" onSubmit={submit} submitting={mutating} />
+    </div>
+  )
 }

@@ -57,7 +57,7 @@ router.get("/", controller.getProducts);
  *     tags: [Products]
  *     responses:
  *       200:
- *         description: Lista de productos con isActive=true y no eliminados
+ *         description: Lista de productos con is_active=true y no eliminados
  */
 router.get("/is-active", controller.getActiveProducts);
 router.get("/isActive", controller.getActiveProducts);
@@ -174,7 +174,7 @@ router.delete("/:id", validateMongoId, controller.deleteProduct);
  *           type: string
  *     responses:
  *       200:
- *         description: Producto marcado como eliminado lógicamente (deletedAt establecido e isActive a false)
+ *         description: Producto marcado como eliminado lógicamente (deleted_at establecido e is_active a false)
  *       400:
  *         description: ID inválido
  *       404:
@@ -199,7 +199,7 @@ router.delete("/:id/soft", validateMongoId, controller.softDelete);
  *           type: string
  *     responses:
  *       200:
- *         description: Producto restaurado (deletedAt=null, isActive=true)
+ *         description: Producto restaurado (deleted_at=null, is_active=true)
  *       400:
  *         description: ID inválido
  *       404:
@@ -261,7 +261,7 @@ router.put("/:id/status", validateMongoId, validateBody(changeStatusSchema), con
  *             $ref: '#/components/schemas/IsActiveInput'
  *     responses:
  *       200:
- *         description: Estado isActive actualizado
+ *         description: Estado is_active actualizado
  *       400:
  *         description: ID inválido
  *       404:

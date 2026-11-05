@@ -109,8 +109,8 @@ async function changeStatus(req, res, next) {
 
 async function toggleIsActive(req, res, next) {
   try {
-    const { isActive } = req.body;
-    const product = await productService.toggleIsActive(req.params.id, isActive);
+    const isActiveValue = req.body.is_active !== undefined ? req.body.is_active : req.body.isActive;
+    const product = await productService.toggleIsActive(req.params.id, isActiveValue);
     res.json({
       success: true,
       message: "Estado activo/inactivo actualizado correctamente",
@@ -126,7 +126,12 @@ async function isActive(req, res, next) {
     if (req.method === "GET") {
       try {
         const product = await productService.getProductById(req.params.id);
-        return res.json({ success: true, isActive: product.isActive, data: product });
+        return res.json({
+          success: true,
+          is_active: product.is_active,
+          isActive: product.is_active,
+          data: product
+        });
       } catch (error) {
         return next(error);
       }

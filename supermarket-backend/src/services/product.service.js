@@ -21,15 +21,16 @@ async function createProduct(data) {
   const product = await productRepository.create(data);
 
   if (!product) {
-    const error = new Error("Producto no encontrado");
-    error.statusCode = 404;
+    const error = new Error("No se pudo crear el producto");
+    error.statusCode = 400;
     throw error;
   }
+
+  return product;
 }
 
 async function getProducts(filter) {
   return productRepository.findAll(filter);
-  
 }
 
 async function getProductById(id) {
@@ -150,7 +151,7 @@ async function toggleIsActive(id, isActiveValue) {
   let newActiveState = isActiveValue;
   if (typeof newActiveState !== "boolean") {
     const current = await getProductById(id);
-    newActiveState = !current.isActive;
+    newActiveState = current.is_active !== undefined ? !current.is_active : !current.isActive;
   }
 
   const product = await productRepository.setIsActive(id, newActiveState);
