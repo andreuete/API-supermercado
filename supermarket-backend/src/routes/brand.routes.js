@@ -171,6 +171,8 @@ router.put("/:id", validateMongoId, validateBody(updateBrandSchema), controller.
  *         description: Marca marcada como eliminada
  *       400:
  *         description: ID inválido
+ *       409:
+ *         description: No se puede eliminar porque tiene productos asociados
  *       404:
  *         description: Marca no encontrada
  */
@@ -193,6 +195,8 @@ router.delete("/:id", validateMongoId, controller.deleteBrand);
  *         description: Marca marcada como eliminada lógicamente
  *       400:
  *         description: ID inválido
+ *       409:
+ *         description: No se puede eliminar porque tiene productos asociados
  *       404:
  *         description: Marca no encontrada
  */

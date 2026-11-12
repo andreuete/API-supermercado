@@ -178,6 +178,8 @@ router.put("/:id", validateMongoId, validateBody(updateCategorySchema), controll
  *         description: Categoría marcada como eliminada
  *       400:
  *         description: ID inválido
+ *       409:
+ *         description: No se puede eliminar porque tiene productos o subcategorías asociadas
  *       404:
  *         description: Categoría no encontrada
  */
@@ -200,6 +202,8 @@ router.delete("/:id", validateMongoId, controller.deleteCategory);
  *         description: Categoría marcada como eliminada lógicamente
  *       400:
  *         description: ID inválido
+ *       409:
+ *         description: No se puede eliminar porque tiene productos o subcategorías asociadas
  *       404:
  *         description: Categoría no encontrada
  */

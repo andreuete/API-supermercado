@@ -2,9 +2,15 @@ const express = require("express");
 const controller = require("../controllers/user.controller");
 const { validateBody } = require("../middlewares/validate.middleware");
 const { validateMongoId } = require("../middlewares/validateMongoId.middleware");
+const { authenticate } = require("../middlewares/authenticate.middleware");
+const { authorizePermissions } = require("../middlewares/authorize.middleware");
 const { createUserSchema, updateUserSchema, changeStatusSchema } = require("../schemas/user.schema");
 
 const router = express.Router();
+const canReadUsers = authorizePermissions("users:read");
+const canWriteUsers = authorizePermissions("users:write");
+
+router.use(authenticate);
 
 /**
  * @swagger
@@ -57,7 +63,7 @@ const router = express.Router();
  *       400:
  *         description: Datos inválidos
  */
-router.post("/", validateBody(createUserSchema), controller.createUser);
+router.post("/", canWriteUsers, validateBody(createUserSchema), controller.createUser);
 
 /**
  * @swagger
@@ -69,7 +75,7 @@ router.post("/", validateBody(createUserSchema), controller.createUser);
  *       200:
  *         description: Lista de usuarios (con role_ids populado, sin password)
  */
-router.get("/", controller.getUsers);
+router.get("/", canReadUsers, controller.getUsers);
 
 /**
  * @swagger
@@ -81,9 +87,9 @@ router.get("/", controller.getUsers);
  *       200:
  *         description: Lista de usuarios con is_active=true y no eliminados
  */
-router.get("/is-active", controller.getActiveUsers);
-router.get("/isActive", controller.getActiveUsers);
-router.get("/active", controller.getActiveUsers);
+router.get("/is-active", canReadUsers, controller.getActiveUsers);
+router.get("/isActive", canReadUsers, controller.getActiveUsers);
+router.get("/active", canReadUsers, controller.getActiveUsers);
 
 /**
  * @swagger
@@ -105,8 +111,8 @@ router.get("/active", controller.getActiveUsers);
  *       404:
  *         description: Usuario no encontrado
  */
-router.get("/slug/:slug", controller.getBySlug);
-router.get("/by-slug/:slug", controller.getBySlug);
+router.get("/slug/:slug", canReadUsers, controller.getBySlug);
+router.get("/by-slug/:slug", canReadUsers, controller.getBySlug);
 
 /**
  * @swagger
@@ -128,8 +134,8 @@ router.get("/by-slug/:slug", controller.getBySlug);
  *       404:
  *         description: Usuario no encontrado
  */
-router.get("/:id", validateMongoId, controller.getById);
-router.get("/id/:id", validateMongoId, controller.getById);
+router.get("/:id", canReadUsers, validateMongoId, controller.getById);
+router.get("/id/:id", canReadUsers, validateMongoId, controller.getById);
 
 /**
  * @swagger
@@ -172,7 +178,7 @@ router.get("/id/:id", validateMongoId, controller.getById);
  *       404:
  *         description: Usuario no encontrado
  */
-router.put("/:id", validateMongoId, validateBody(updateUserSchema), controller.updateUser);
+router.put("/:id", canWriteUsers, validateMongoId, validateBody(updateUserSchema), controller.updateUser);
 
 /**
  * @swagger
@@ -194,7 +200,7 @@ router.put("/:id", validateMongoId, validateBody(updateUserSchema), controller.u
  *       404:
  *         description: Usuario no encontrado
  */
-router.delete("/:id", validateMongoId, controller.deleteUser);
+router.delete("/:id", canWriteUsers, validateMongoId, controller.deleteUser);
 
 /**
  * @swagger
@@ -216,10 +222,10 @@ router.delete("/:id", validateMongoId, controller.deleteUser);
  *       404:
  *         description: Usuario no encontrado
  */
-router.patch("/:id/soft-delete", validateMongoId, controller.softDelete);
-router.patch("/:id/softDelete", validateMongoId, controller.softDelete);
-router.delete("/:id/soft-delete", validateMongoId, controller.softDelete);
-router.delete("/:id/soft", validateMongoId, controller.softDelete);
+router.patch("/:id/soft-delete", canWriteUsers, validateMongoId, controller.softDelete);
+router.patch("/:id/softDelete", canWriteUsers, validateMongoId, controller.softDelete);
+router.delete("/:id/soft-delete", canWriteUsers, validateMongoId, controller.softDelete);
+router.delete("/:id/soft", canWriteUsers, validateMongoId, controller.softDelete);
 
 /**
  * @swagger
@@ -241,10 +247,10 @@ router.delete("/:id/soft", validateMongoId, controller.softDelete);
  *       404:
  *         description: Usuario no encontrado
  */
-router.patch("/:id/restore", validateMongoId, controller.restoreDeleted);
-router.patch("/:id/restore-deleted", validateMongoId, controller.restoreDeleted);
-router.patch("/:id/restoreDeleted", validateMongoId, controller.restoreDeleted);
-router.post("/:id/restore", validateMongoId, controller.restoreDeleted);
+router.patch("/:id/restore", canWriteUsers, validateMongoId, controller.restoreDeleted);
+router.patch("/:id/restore-deleted", canWriteUsers, validateMongoId, controller.restoreDeleted);
+router.patch("/:id/restoreDeleted", canWriteUsers, validateMongoId, controller.restoreDeleted);
+router.post("/:id/restore", canWriteUsers, validateMongoId, controller.restoreDeleted);
 
 /**
  * @swagger
@@ -278,10 +284,10 @@ router.post("/:id/restore", validateMongoId, controller.restoreDeleted);
  *       404:
  *         description: Usuario no encontrado
  */
-router.patch("/:id/status", validateMongoId, validateBody(changeStatusSchema), controller.changeStatus);
-router.patch("/:id/change-status", validateMongoId, validateBody(changeStatusSchema), controller.changeStatus);
-router.patch("/:id/changeStatus", validateMongoId, validateBody(changeStatusSchema), controller.changeStatus);
-router.put("/:id/status", validateMongoId, validateBody(changeStatusSchema), controller.changeStatus);
+router.patch("/:id/status", canWriteUsers, validateMongoId, validateBody(changeStatusSchema), controller.changeStatus);
+router.patch("/:id/change-status", canWriteUsers, validateMongoId, validateBody(changeStatusSchema), controller.changeStatus);
+router.patch("/:id/changeStatus", canWriteUsers, validateMongoId, validateBody(changeStatusSchema), controller.changeStatus);
+router.put("/:id/status", canWriteUsers, validateMongoId, validateBody(changeStatusSchema), controller.changeStatus);
 
 /**
  * @swagger
@@ -312,10 +318,10 @@ router.put("/:id/status", validateMongoId, validateBody(changeStatusSchema), con
  *       404:
  *         description: Usuario no encontrado
  */
-router.patch("/:id/is-active", validateMongoId, controller.toggleIsActive);
-router.patch("/:id/isActive", validateMongoId, controller.toggleIsActive);
-router.patch("/:id/active", validateMongoId, controller.toggleIsActive);
-router.get("/:id/is-active", validateMongoId, controller.isActive);
-router.get("/:id/isActive", validateMongoId, controller.isActive);
+router.patch("/:id/is-active", canWriteUsers, validateMongoId, controller.toggleIsActive);
+router.patch("/:id/isActive", canWriteUsers, validateMongoId, controller.toggleIsActive);
+router.patch("/:id/active", canWriteUsers, validateMongoId, controller.toggleIsActive);
+router.get("/:id/is-active", canReadUsers, validateMongoId, controller.isActive);
+router.get("/:id/isActive", canReadUsers, validateMongoId, controller.isActive);
 
 module.exports = router;

@@ -1,11 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
-import { useFieldArray, useForm, useWatch } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect, useState } from 'react'
 import { ArrowLeft, ImagePlus, Save, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { productDefaults, productSchema } from './schemaEvents'
-import productReferencesService from '../../services/productReferencesService'
-import { getErrorMessage, logApiError } from '../../utils/errorHandler'
 
 function ProductImagePreview({ src, alt }) {
   const [previewSrc, setPreviewSrc] = useState('')
@@ -36,173 +31,24 @@ function ProductImagePreview({ src, alt }) {
   )
 }
 
-function getInitialFormValues(product, categories = [], brands = []) {
-  if (!product) return productDefaults
-
-  const variants = Array.isArray(product.variants) ? product.variants : []
-  const prices = variants.map((variant) => Number(variant.price)).filter(Number.isFinite)
-  const variantStock = variants.reduce((total, variant) => total + Number(variant.stock || 0), 0)
-  const firstVariant = variants[0]
-
-  // Resolver ID de categoría (por id, _id o nombre)
-  const rawCatId = product.category?.id || product.category?._id || (typeof product.category === 'string' ? product.category : '')
-  const rawCatName = product.category?.name || product.categoria || ''
-  const matchedCategory = categories.find(
-    (c) => String(c._id ?? c.id) === String(rawCatId) || c.name === rawCatName || c.slug === rawCatName
-  )
-  const categoryId = matchedCategory ? String(matchedCategory._id ?? matchedCategory.id) : String(rawCatId || '')
-
-  // Resolver ID de marca (por id, _id o nombre)
-  const rawBrandId = product.brand?.id || product.brand?._id || (typeof product.brand === 'string' ? product.brand : '')
-  const rawBrandName = product.brand?.name || product.marca || ''
-  const matchedBrand = brands.find(
-    (b) => String(b._id ?? b.id) === String(rawBrandId) || b.name === rawBrandName || b.slug === rawBrandName
-  )
-  const brandId = matchedBrand ? String(matchedBrand._id ?? matchedBrand.id) : String(rawBrandId || '')
-
-  return {
-    name: product.name ?? product.nombre ?? '',
-    categoryId,
-    brandId,
-    price: Number(firstVariant?.price ?? (prices.length ? Math.min(...prices) : (product.price ?? product.precio ?? 0))),
-    stock: Number(firstVariant?.stock ?? (product.stock ?? variantStock)),
-    description: product.description ?? product.descripcion ?? '',
-    images: Array.isArray(product.images)
-      ? product.images.map((image) => ({ url: typeof image === 'string' ? image : image?.url || '' }))
-      : [],
-    sku: firstVariant?.sku || '',
-    is_active: product.is_active ?? product.isActive ?? true,
-    status: product.status || 'published',
-  }
-}
-
-export default function ProductForm({ initialValues, onSubmit, submitting = false, mode = 'create' }) {
-  const [brands, setBrands] = useState([])
-  const [categories, setCategories] = useState([])
-  const [referencesLoading, setReferencesLoading] = useState(true)
-  const [referencesError, setReferencesError] = useState('')
-
-  const {
-    register,
-    control,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting }
-  } = useForm({
-    resolver: zodResolver(productSchema),
-    defaultValues: getInitialFormValues(initialValues, [], []),
-  })
-  const { fields: imageFields, append: appendImage, remove: removeImage } = useFieldArray({
-    control,
-    name: 'images',
-  })
-  const imageValues = useWatch({ control, name: 'images' }) || []
-
-  const loadReferences = useCallback(async () => {
-    setReferencesLoading(true)
-    setReferencesError('')
-    try {
-      const [brandRows, categoryRows] = await Promise.all([
-        productReferencesService.getBrands(),
-        productReferencesService.getCategories(),
-      ])
-      setBrands(brandRows)
-      setCategories(categoryRows)
-    } catch (error) {
-      logApiError(error, 'cargar marcas y categorías')
-      setReferencesError(getErrorMessage(error))
-    } finally {
-      setReferencesLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    loadReferences()
-  }, [loadReferences])
-
-  // Sincronizar el formulario una vez que las opciones asíncronas estén en el DOM
-  useEffect(() => {
-    if (!referencesLoading) {
-      if (initialValues) {
-        reset(getInitialFormValues(initialValues, categories, brands))
-      } else {
-        reset(productDefaults)
-      }
-    }
-  }, [initialValues, referencesLoading, categories, brands, reset])
-
-  const handleFormSubmit = async (values) => {
-    const selectedCat = categories.find(
-      (c) => String(c._id ?? c.id) === String(values.categoryId) || c.name === values.categoryId
-    )
-    const selectedBrand = brands.find(
-      (b) => String(b._id ?? b.id) === String(values.brandId) || b.name === values.brandId
-    )
-
-    if (!selectedCat) {
-      throw new Error('La categoría seleccionada no es válida.')
-    }
-    if (!selectedBrand) {
-      throw new Error('La marca seleccionada no es válida.')
-    }
-
-    // Gestionar variantes compatibles con el backend
-    let variants = []
-    if (mode === 'edit' && Array.isArray(initialValues?.variants) && initialValues.variants.length > 0) {
-      variants = initialValues.variants.map((v, index) => {
-        if (index === 0) {
-          return {
-            ...v,
-            price: Number(values.price),
-            stock: Number(values.stock),
-            sku: values.sku?.trim() || v.sku,
-          }
-        }
-        return v
-      })
-    } else {
-      const catPrefix = selectedCat.name.replace(/[^a-zA-Z0-9]/g, '').slice(0, 3).toUpperCase() || 'PRD'
-      const namePrefix = values.name.replace(/[^a-zA-Z0-9]/g, '').slice(0, 4).toUpperCase() || 'ITEM'
-      const autoSku = values.sku?.trim() || `${catPrefix}-${namePrefix}-${Date.now().toString().slice(-4)}`
-      variants = [
-        {
-          sku: autoSku,
-          price: Number(values.price),
-          stock: Number(values.stock),
-          attributes: {},
-          is_active: values.is_active ?? true,
-          status: values.status || 'published',
-        }
-      ]
-    }
-
-    const payload = {
-      name: values.name.trim(),
-      description: values.description?.trim() || '',
-      category: {
-        id: selectedCat._id ?? selectedCat.id,
-        slug: selectedCat.slug,
-        name: selectedCat.name,
-      },
-      brand: {
-        id: selectedBrand._id ?? selectedBrand.id,
-        slug: selectedBrand.slug,
-        name: selectedBrand.name,
-      },
-      variants,
-      images: values.images.map(({ url }) => {
-        const existingImage = Array.isArray(initialValues?.images)
-          ? initialValues.images.find((image) => image?.url === url)
-          : null
-        return { url: url.trim(), alt_text: existingImage?.alt_text || '' }
-      }),
-      is_active: values.is_active ?? true,
-      status: values.status || 'published',
-    }
-
-    await onSubmit(payload)
-  }
-
+export default function ProductForm({
+  initialValues,
+  brands,
+  categories,
+  referencesLoading,
+  referencesError,
+  onRetryReferences,
+  register,
+  errors,
+  isSubmitting,
+  imageFields,
+  imageValues,
+  appendImage,
+  removeImage,
+  submitForm,
+  submitting = false,
+  mode = 'create',
+}) {
   // Opciones de fallback si initialValues tiene una categoría o marca no listada en activas
   const currentCatId = initialValues?.category?.id || initialValues?.category?._id
   const currentCatName = initialValues?.category?.name
@@ -213,7 +59,7 @@ export default function ProductForm({ initialValues, onSubmit, submitting = fals
   const brandInList = brands.some((b) => String(b._id ?? b.id) === String(currentBrandId))
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="panel p-5 md:p-8">
+    <form onSubmit={submitForm} className="panel p-5 md:p-8">
       <div className="mb-7 border-b border-slate-100 pb-5">
         <div className="text-xs font-bold tracking-wide text-brand">
           {mode === 'create' ? 'Alta de inventario' : 'Actualizar catálogo'}
@@ -229,7 +75,7 @@ export default function ProductForm({ initialValues, onSubmit, submitting = fals
       {referencesError && (
         <div role="alert" className="mb-5 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
           <p>No se pudieron cargar las marcas y categorías: {referencesError}</p>
-          <button type="button" onClick={loadReferences} className="mt-2 font-semibold underline">
+          <button type="button" onClick={onRetryReferences} className="mt-2 font-semibold underline">
             Reintentar
           </button>
         </div>

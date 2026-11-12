@@ -1,5 +1,6 @@
 const Product = require("../models/product.model");
 const { generateSlug } = require("../models/product.model");
+const { generateSku } = require("../utils/sku");
 
 class ProductRepository {
   async create(data) {
@@ -9,6 +10,10 @@ class ProductRepository {
     } else if (productData.slug) {
       productData.slug = generateSlug(productData.slug);
     }
+    productData.variants = (productData.variants || []).map((variant) => ({
+      ...variant,
+      sku: variant.sku?.trim() || generateSku(productData.category?.name, productData.name)
+    }));
     return Product.create(productData);
   }
 

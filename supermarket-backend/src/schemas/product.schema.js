@@ -21,10 +21,10 @@ const refSnapshotSchema = z.object({
 // ─── Esquema de variante embebida ─────────────────────────────────────────────
 const variantInputSchema = z.object({
   sku: z
-    .string({ required_error: "El SKU es obligatorio" })
-    .min(1, "El SKU no puede estar vacío")
+    .string()
     .trim()
-    .toUpperCase(),
+    .toUpperCase()
+    .optional(),
   price: z
     .number({ required_error: "El precio es obligatorio", invalid_type_error: "El precio debe ser un número" })
     .min(0, "El precio no puede ser negativo"),

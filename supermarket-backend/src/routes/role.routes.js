@@ -2,9 +2,15 @@ const express = require("express");
 const controller = require("../controllers/role.controller");
 const { validateBody } = require("../middlewares/validate.middleware");
 const { validateMongoId } = require("../middlewares/validateMongoId.middleware");
+const { authenticate } = require("../middlewares/authenticate.middleware");
+const { authorizePermissions } = require("../middlewares/authorize.middleware");
 const { createRoleSchema, updateRoleSchema, changeStatusSchema } = require("../schemas/role.schema");
 
 const router = express.Router();
+const canReadRoles = authorizePermissions("roles:read");
+const canWriteRoles = authorizePermissions("roles:write");
+
+router.use(authenticate);
 
 /**
  * @swagger
@@ -47,7 +53,7 @@ const router = express.Router();
  *       400:
  *         description: Datos inválidos
  */
-router.post("/", validateBody(createRoleSchema), controller.createRole);
+router.post("/", canWriteRoles, validateBody(createRoleSchema), controller.createRole);
 
 /**
  * @swagger
@@ -59,7 +65,7 @@ router.post("/", validateBody(createRoleSchema), controller.createRole);
  *       200:
  *         description: Lista de roles
  */
-router.get("/", controller.getRoles);
+router.get("/", canReadRoles, controller.getRoles);
 
 /**
  * @swagger
@@ -71,9 +77,9 @@ router.get("/", controller.getRoles);
  *       200:
  *         description: Lista de roles con is_active=true y no eliminados
  */
-router.get("/is-active", controller.getActiveRoles);
-router.get("/isActive", controller.getActiveRoles);
-router.get("/active", controller.getActiveRoles);
+router.get("/is-active", canReadRoles, controller.getActiveRoles);
+router.get("/isActive", canReadRoles, controller.getActiveRoles);
+router.get("/active", canReadRoles, controller.getActiveRoles);
 
 /**
  * @swagger
@@ -96,8 +102,8 @@ router.get("/active", controller.getActiveRoles);
  *       404:
  *         description: Rol no encontrado
  */
-router.get("/slug/:slug", controller.getBySlug);
-router.get("/by-slug/:slug", controller.getBySlug);
+router.get("/slug/:slug", canReadRoles, controller.getBySlug);
+router.get("/by-slug/:slug", canReadRoles, controller.getBySlug);
 
 /**
  * @swagger
@@ -119,8 +125,8 @@ router.get("/by-slug/:slug", controller.getBySlug);
  *       404:
  *         description: Rol no encontrado
  */
-router.get("/:id", validateMongoId, controller.getById);
-router.get("/id/:id", validateMongoId, controller.getById);
+router.get("/:id", canReadRoles, validateMongoId, controller.getById);
+router.get("/id/:id", canReadRoles, validateMongoId, controller.getById);
 
 /**
  * @swagger
@@ -159,7 +165,7 @@ router.get("/id/:id", validateMongoId, controller.getById);
  *       404:
  *         description: Rol no encontrado
  */
-router.put("/:id", validateMongoId, validateBody(updateRoleSchema), controller.updateRole);
+router.put("/:id", canWriteRoles, validateMongoId, validateBody(updateRoleSchema), controller.updateRole);
 
 /**
  * @swagger
@@ -178,10 +184,12 @@ router.put("/:id", validateMongoId, validateBody(updateRoleSchema), controller.u
  *         description: Rol marcado como eliminado
  *       400:
  *         description: ID inválido
+ *       409:
+ *         description: No se puede eliminar porque tiene usuarios asociados
  *       404:
  *         description: Rol no encontrado
  */
-router.delete("/:id", validateMongoId, controller.deleteRole);
+router.delete("/:id", canWriteRoles, validateMongoId, controller.deleteRole);
 
 /**
  * @swagger
@@ -200,13 +208,15 @@ router.delete("/:id", validateMongoId, controller.deleteRole);
  *         description: Rol marcado como eliminado lógicamente
  *       400:
  *         description: ID inválido
+ *       409:
+ *         description: No se puede eliminar porque tiene usuarios asociados
  *       404:
  *         description: Rol no encontrado
  */
-router.patch("/:id/soft-delete", validateMongoId, controller.softDelete);
-router.patch("/:id/softDelete", validateMongoId, controller.softDelete);
-router.delete("/:id/soft-delete", validateMongoId, controller.softDelete);
-router.delete("/:id/soft", validateMongoId, controller.softDelete);
+router.patch("/:id/soft-delete", canWriteRoles, validateMongoId, controller.softDelete);
+router.patch("/:id/softDelete", canWriteRoles, validateMongoId, controller.softDelete);
+router.delete("/:id/soft-delete", canWriteRoles, validateMongoId, controller.softDelete);
+router.delete("/:id/soft", canWriteRoles, validateMongoId, controller.softDelete);
 
 /**
  * @swagger
@@ -228,10 +238,10 @@ router.delete("/:id/soft", validateMongoId, controller.softDelete);
  *       404:
  *         description: Rol no encontrado
  */
-router.patch("/:id/restore", validateMongoId, controller.restoreDeleted);
-router.patch("/:id/restore-deleted", validateMongoId, controller.restoreDeleted);
-router.patch("/:id/restoreDeleted", validateMongoId, controller.restoreDeleted);
-router.post("/:id/restore", validateMongoId, controller.restoreDeleted);
+router.patch("/:id/restore", canWriteRoles, validateMongoId, controller.restoreDeleted);
+router.patch("/:id/restore-deleted", canWriteRoles, validateMongoId, controller.restoreDeleted);
+router.patch("/:id/restoreDeleted", canWriteRoles, validateMongoId, controller.restoreDeleted);
+router.post("/:id/restore", canWriteRoles, validateMongoId, controller.restoreDeleted);
 
 /**
  * @swagger
@@ -265,10 +275,10 @@ router.post("/:id/restore", validateMongoId, controller.restoreDeleted);
  *       404:
  *         description: Rol no encontrado
  */
-router.patch("/:id/status", validateMongoId, validateBody(changeStatusSchema), controller.changeStatus);
-router.patch("/:id/change-status", validateMongoId, validateBody(changeStatusSchema), controller.changeStatus);
-router.patch("/:id/changeStatus", validateMongoId, validateBody(changeStatusSchema), controller.changeStatus);
-router.put("/:id/status", validateMongoId, validateBody(changeStatusSchema), controller.changeStatus);
+router.patch("/:id/status", canWriteRoles, validateMongoId, validateBody(changeStatusSchema), controller.changeStatus);
+router.patch("/:id/change-status", canWriteRoles, validateMongoId, validateBody(changeStatusSchema), controller.changeStatus);
+router.patch("/:id/changeStatus", canWriteRoles, validateMongoId, validateBody(changeStatusSchema), controller.changeStatus);
+router.put("/:id/status", canWriteRoles, validateMongoId, validateBody(changeStatusSchema), controller.changeStatus);
 
 /**
  * @swagger
@@ -299,10 +309,10 @@ router.put("/:id/status", validateMongoId, validateBody(changeStatusSchema), con
  *       404:
  *         description: Rol no encontrado
  */
-router.patch("/:id/is-active", validateMongoId, controller.toggleIsActive);
-router.patch("/:id/isActive", validateMongoId, controller.toggleIsActive);
-router.patch("/:id/active", validateMongoId, controller.toggleIsActive);
-router.get("/:id/is-active", validateMongoId, controller.isActive);
-router.get("/:id/isActive", validateMongoId, controller.isActive);
+router.patch("/:id/is-active", canWriteRoles, validateMongoId, controller.toggleIsActive);
+router.patch("/:id/isActive", canWriteRoles, validateMongoId, controller.toggleIsActive);
+router.patch("/:id/active", canWriteRoles, validateMongoId, controller.toggleIsActive);
+router.get("/:id/is-active", canReadRoles, validateMongoId, controller.isActive);
+router.get("/:id/isActive", canReadRoles, validateMongoId, controller.isActive);
 
 module.exports = router;

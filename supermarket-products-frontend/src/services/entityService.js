@@ -1,4 +1,5 @@
 import { apiRootClient } from './apiClient'
+import { entityId } from '../utils/recordIds'
 
 const endpointFor = (entity) => {
   if (entity === 'brand') return '/brands'
@@ -7,8 +8,6 @@ const endpointFor = (entity) => {
 }
 
 const unwrap = (response) => response?.data?.data
-const entityId = (entity) => encodeURIComponent(String(entity.id ?? entity._id))
-
 export async function listEntities(entity) {
   const response = await apiRootClient.get(endpointFor(entity))
   const rows = unwrap(response)

@@ -73,6 +73,23 @@ async function getImagesByEntity(entity_type, entity_id) {
   return imageRepository.findByEntity(entity_type.trim().toLowerCase(), entity_id);
 }
 
+async function softDeleteByEntity(entity_type, entity_id) {
+  const normalizedType = typeof entity_type === "string" ? entity_type.trim().toLowerCase() : "";
+  if (!["product", "category", "brand"].includes(normalizedType)) {
+    const error = new Error("El tipo de entidad no es válido");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (!entity_id || !mongoose.Types.ObjectId.isValid(entity_id)) {
+    const error = new Error("El ID de entidad no es válido");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  return imageRepository.softDeleteByEntity(normalizedType, entity_id);
+}
+
 async function updateImage(id, data) {
   validateId(id);
 
@@ -178,6 +195,7 @@ module.exports = {
   getBySlug: getImageBySlug,
   getActiveImages,
   getImagesByEntity,
+  softDeleteByEntity,
   updateImage,
   deleteImage,
   softDelete,

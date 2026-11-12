@@ -11,7 +11,8 @@ Sistema integral Full Stack para la administración y gestión del catálogo de 
 - **Framework Web:** [Express.js](https://expressjs.com/)
 - **Base de Datos / ODM:** [MongoDB](https://www.mongodb.com/) & [Mongoose](https://mongoosejs.com/)
 - **Validación de Esquemas:** [Zod](https://zod.dev/)
-- **Seguridad & CORS:** [Helmet](https://helmetjs.github.io/), [cors](https://github.com/expressjs/cors) & [bcryptjs](https://github.com/dcodeIO/bcrypt.js)
+- **Autenticación:** [Argon2](https://github.com/ranisalt/node-argon2) para contraseñas y [JWT](https://github.com/auth0/node-jsonwebtoken) para sesiones
+- **Seguridad & CORS:** [Helmet](https://helmetjs.github.io/) & [cors](https://github.com/expressjs/cors)
 - **Documentación de API:** [Swagger UI Express](https://github.com/scottie1984/swagger-ui-express) & OpenAPI 3.0
 - **Logging HTTP:** [Morgan](https://github.com/expressjs/morgan)
 
@@ -41,14 +42,14 @@ API-supermercado/
 ├── supermarket-backend/                  # API RESTful (Express + MongoDB)
 │   ├── src/
 │   │   ├── config/                       # Conexión a MongoDB y especificación Swagger
-│   │   ├── controllers/                  # Controladores HTTP (Product, Brand, Category, Image, Role, User, Variant)
-│   │   ├── middlewares/                  # Validadores Zod, MongoID y manejador de errores
-│   │   ├── models/                       # Modelos Mongoose (Product, Category, Brand, Image, Role, User, Variant)
+│   │   ├── controllers/                  # Controladores HTTP, incluidos Auth, Profile y Users
+│   │   ├── middlewares/                  # Validación, autenticación JWT y autorización por permisos
+│   │   ├── models/                       # Modelos Mongoose, incluidos User y Profile
 │   │   ├── repositories/                 # Capa de persistencia y consultas a base de datos
 │   │   ├── routes/                       # Definición de rutas y endpoints de la API
 │   │   ├── schemas/                      # Esquemas de validación Zod por entidad
 │   │   ├── services/                     # Lógica de negocio
-│   │   └── utils/                        # Generador de slugs y errorHandler centralizado
+│   │   └── utils/                        # Hash de contraseñas, JWT, slugs y errorHandler
 │   ├── seed.js                           # Script para poblar la DB con todas las colecciones iniciales
 │   └── package.json
 │
@@ -92,7 +93,19 @@ PORT=3000
 MONGODB_URI=mongodb://127.0.0.1:27017/supermarket
 CORS_ORIGIN=http://localhost:5173
 NODE_ENV=development
+JWT_SECRET=<secreto-aleatorio-de-al-menos-32-bytes>
+JWT_EXPIRES_IN=1h
 ```
+
+`JWT_SECRET` es obligatorio. Configura un secreto propio y seguro en cada entorno; no reutilices el de desarrollo en producción.
+
+#### **Autenticación y perfil**
+
+- `POST /api/auth/login` recibe `{ "email": "...", "password": "..." }` y devuelve un JWT y los datos del usuario.
+- Envía el token en las rutas protegidas como `Authorization: Bearer <token>`.
+- `GET /api/profile` obtiene el perfil del usuario autenticado; `PATCH /api/profile` actualiza su avatar con `{ "avatar": "https://..." }` o lo elimina con `{ "avatar": null }`.
+- Las rutas de gestión `/api/users` y `/api/roles` requieren autenticación y los permisos `users:read`/`users:write` o `roles:read`/`roles:write`, respectivamente. El rol de administrador creado por el seed tiene todos los permisos.
+- Las contraseñas se guardan usando Argon2id. Los hashes scrypt existentes se actualizan automáticamente a Argon2 en el siguiente inicio de sesión correcto.
 
 #### **Población de la Base de Datos (Seed)**
 El archivo [`seed.js`](file:///home/andreu/2DAM/Proyecto-Servicios/Proyecto Supermercado/API-supermercado/supermarket-backend/seed.js) permite poblar todas las colecciones del sistema (Roles, Usuarios, Categorías jerárquicas, Marcas, Productos con Variantes e Imágenes polimórficas).
@@ -149,7 +162,7 @@ Abre en tu navegador la dirección indicada por Vite (habitualmente `http://loca
 
 ## 🗄️ Modelo de Datos y Colecciones (MongoDB / Mongoose)
 
-Tomando como referencia la arquitectura de modelos y el script [`seed.js`](file:///home/andreu/2DAM/Proyecto-Servicios/Proyecto Supermercado/API-supermercado/supermarket-backend/seed.js), el sistema implementa **6 colecciones principales** más subdocumentos embebidos.
+Tomando como referencia la arquitectura de modelos y el script [`seed.js`](file:///home/andreu/2DAM/Proyecto-Servicios/Proyecto Supermercado/API-supermercado/supermarket-backend/seed.js), el sistema implementa **7 colecciones principales** más subdocumentos embebidos.
 
 ### 📌 Campos Comunes (`baseFields`)
 La mayoría de colecciones heredan una estructura estandarizada definida en `src/models/base.js`:
@@ -190,7 +203,7 @@ Gestiona los accesos, autenticación y asociación de roles para los operadores 
 
 - **Modelo:** `User` (`src/models/user.model.js`)
 - **Generación de slug:** Derivado automáticamente del correo electrónico (`usuario-dominio`).
-- **Seguridad:** Contraseña hasheada (`bcrypt` / `scrypt`), excluida de consultas por defecto (`select: false`).
+- **Seguridad:** Contraseña hasheada con Argon2id y excluida de consultas por defecto (`select: false`). Los hashes scrypt heredados se actualizan al iniciar sesión.
 
 | Campo | Tipo | Requerido | Descripción |
 | --- | --- | --- | --- |
@@ -209,6 +222,13 @@ Gestiona los accesos, autenticación y asociación de roles para los operadores 
 | `ana.garcia@example.com` | `Cliente1234!` | Cliente | Activo (`published`) |
 | `carlos.lopez@example.com` | `Cliente1234!` | Cliente | Activo (`published`) |
 | `marta.perez@example.com` | `Cliente1234!` | Cliente | Inactivo (`inactive`) |
+
+### Colección: Perfiles (`profiles`)
+Almacena el avatar asociado al usuario autenticado, separado de las credenciales.
+
+- **Modelo:** `Profile` (`src/models/profile.model.js`)
+- **Campos:** `user_id` (referencia única a `User`), `avatar` (URL o `null`), `created_at`, `updated_at`.
+- **API:** `GET /api/profile` y `PATCH /api/profile` operan exclusivamente sobre el perfil del token autenticado.
 
 ---
 

@@ -23,6 +23,16 @@ class UserRepository {
     return User.findOne({ email }).populate("role_ids", "name slug permissions");
   }
 
+  async findByEmailForAuth(email) {
+    return User.findOne({ email })
+      .select("+password")
+      .populate("role_ids", "name slug permissions");
+  }
+
+  async updatePassword(id, password) {
+    return User.findByIdAndUpdate(id, { password }, { runValidators: true });
+  }
+
   async findActive() {
     return User.find({ is_active: true, deleted_at: null })
       .populate("role_ids", "name slug permissions")

@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const roleRepository = require("../repositories/role.repository");
+const { assertNoReferences } = require("../utils/referentialIntegrity");
 
 function validateId(id) {
   if (!id || !mongoose.Types.ObjectId.isValid(id)) {
@@ -15,6 +16,12 @@ function validateSlug(slug) {
     error.statusCode = 400;
     throw error;
   }
+}
+
+function validateNoReferences(id) {
+  return assertNoReferences("el rol", [
+    { exists: roleRepository.hasUsers(id), label: "usuarios" }
+  ]);
 }
 
 async function createRole(data) {
@@ -73,6 +80,7 @@ async function updateRole(id, data) {
 
 async function deleteRole(id) {
   validateId(id);
+  await validateNoReferences(id);
 
   const role = await roleRepository.softDelete(id);
 
@@ -87,6 +95,7 @@ async function deleteRole(id) {
 
 async function softDelete(id) {
   validateId(id);
+  await validateNoReferences(id);
 
   const role = await roleRepository.softDelete(id);
 

@@ -1,4 +1,5 @@
 const Role = require("../models/role.model");
+const User = require("../models/user.model");
 const { generateSlug } = require("../models/role.model");
 
 class RoleRepository {
@@ -26,6 +27,10 @@ class RoleRepository {
 
   async findActive() {
     return Role.find({ is_active: true, deleted_at: null }).sort({ created_at: -1, _id: -1 });
+  }
+
+  async hasUsers(id) {
+    return Boolean(await User.exists({ role_ids: id }));
   }
 
   async updateById(id, data) {

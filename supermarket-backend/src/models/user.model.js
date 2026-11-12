@@ -34,6 +34,13 @@ const userSchema = new mongoose.Schema(
   baseOptions
 );
 
+userSchema.set("toJSON", {
+  transform(_document, returned) {
+    delete returned.password;
+    return returned;
+  }
+});
+
 // El slug del usuario se genera desde el email (único) para evitar colisiones entre nombres iguales
 userSchema.pre("save", function () {
   if (this.email && (!this.slug || this.isModified("email"))) {

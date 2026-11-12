@@ -37,6 +37,13 @@ class ImageRepository {
     );
   }
 
+  async softDeleteByEntity(entity_type, entity_id) {
+    return Image.updateMany(
+      { entity_type, entity_id, deleted_at: null },
+      { $set: { deleted_at: new Date(), is_active: false } }
+    );
+  }
+
   async restoreDeleted(id) {
     return Image.findByIdAndUpdate(
       id,

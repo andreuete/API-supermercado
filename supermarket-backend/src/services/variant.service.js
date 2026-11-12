@@ -9,10 +9,19 @@ function validateProductId(productId) {
   }
 }
 
-function validateSku(sku) {
+async function validateSku(sku, { checkExists = false, productId, currentSku } = {}) {
   if (!sku || typeof sku !== "string" || !sku.trim()) {
     const error = new Error("El SKU es obligatorio");
     error.statusCode = 400;
+    throw error;
+  }
+
+  if (
+    checkExists &&
+    await variantRepository.existsBySku(sku, productId, currentSku)
+  ) {
+    const error = new Error("El SKU ya existe");
+    error.statusCode = 409;
     throw error;
   }
 }
@@ -53,7 +62,7 @@ async function getVariants(productId) {
 
 async function getVariantBySku(productId, sku) {
   validateProductId(productId);
-  validateSku(sku);
+  await validateSku(sku);
 
   const variant = await variantRepository.findBySku(productId, sku);
 
@@ -69,7 +78,12 @@ async function getVariantBySku(productId, sku) {
 async function addVariant(productId, data) {
   validateProductId(productId);
 
-  const result = await variantRepository.addVariant(productId, data);
+  const sku = data.sku?.trim() || await variantRepository.generateSkuForProduct(productId);
+  if (sku) {
+    await validateSku(sku, { checkExists: true, productId });
+  }
+
+  const result = await variantRepository.addVariant(productId, { ...data, ...(sku && { sku }) });
 
   if (!result) {
     const error = new Error("Producto no encontrado");
@@ -82,8 +96,11 @@ async function addVariant(productId, data) {
 
 async function updateVariant(productId, sku, data) {
   validateProductId(productId);
-  validateSku(sku);
+  await validateSku(sku);
   validatePriceAndStock(data);
+  if (data.sku?.trim()) {
+    await validateSku(data.sku, { checkExists: true, productId, currentSku: sku });
+  }
 
   const result = await variantRepository.updateBySku(productId, sku, data);
 
@@ -98,7 +115,7 @@ async function updateVariant(productId, sku, data) {
 
 async function removeVariant(productId, sku) {
   validateProductId(productId);
-  validateSku(sku);
+  await validateSku(sku);
 
   const result = await variantRepository.removeBySku(productId, sku);
 
@@ -113,7 +130,7 @@ async function removeVariant(productId, sku) {
 
 async function softDelete(productId, sku) {
   validateProductId(productId);
-  validateSku(sku);
+  await validateSku(sku);
 
   const result = await variantRepository.softDeleteBySku(productId, sku);
 
@@ -128,7 +145,7 @@ async function softDelete(productId, sku) {
 
 async function restoreVariant(productId, sku) {
   validateProductId(productId);
-  validateSku(sku);
+  await validateSku(sku);
 
   const result = await variantRepository.restoreBySku(productId, sku);
 

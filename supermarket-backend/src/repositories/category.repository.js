@@ -1,4 +1,5 @@
 const Category = require("../models/category.model");
+const Product = require("../models/product.model");
 const { generateSlug } = require("../models/category.model");
 
 class CategoryRepository {
@@ -30,6 +31,14 @@ class CategoryRepository {
     return Category.find({ is_active: true, deleted_at: null })
       .populate("parent_id", "name slug")
       .sort({ created_at: -1, _id: -1 });
+  }
+
+  async hasProducts(id) {
+    return Boolean(await Product.exists({ "category.id": id }));
+  }
+
+  async hasChildren(id) {
+    return Boolean(await Category.exists({ parent_id: id }));
   }
 
   async updateById(id, data) {

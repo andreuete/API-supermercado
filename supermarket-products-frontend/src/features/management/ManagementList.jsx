@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Boxes, KeyRound, Pencil, Plus, Shield, Users } from 'lucide-react'
 import ErrorState from '../../components/Error'
-import { idOf, listManagedRecords } from '../../services/managementService'
+import { idOf } from '../../utils/recordIds'
 
 const config = {
   variant: { plural: 'variants', label: 'Variantes', singular: 'variante', icon: Boxes },
@@ -12,29 +11,14 @@ const config = {
 
 const statusLabel = (record) => record.is_active ? 'Activo' : 'Inactivo'
 
-export default function ManagementList({ entity }) {
+export default function ManagementList({ entity, records, loading, error, refresh }) {
   const { plural, label, singular, icon: Icon } = config[entity]
-  const [records, setRecords] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [retry, setRetry] = useState(0)
-
-  useEffect(() => {
-    let active = true
-    setLoading(true)
-    setError('')
-    listManagedRecords(entity)
-      .then((items) => { if (active) setRecords(items) })
-      .catch((cause) => { if (active) setError(cause?.response?.data?.message || cause.message || `No se pudieron cargar ${label.toLowerCase()}.`) })
-      .finally(() => { if (active) setLoading(false) })
-    return () => { active = false }
-  }, [entity, label, retry])
 
   const editPath = (record) => entity === 'variant'
     ? `/variants/${encodeURIComponent(record.productId)}/${encodeURIComponent(record.sku)}/edit`
     : `/${plural}/${encodeURIComponent(idOf(record))}/edit`
 
-  if (error) return <ErrorState title={`No se pudieron cargar ${label.toLowerCase()}`} message={error} onRetry={() => setRetry((count) => count + 1)} />
+  if (error) return <ErrorState title={`No se pudieron cargar ${label.toLowerCase()}`} message={error} onRetry={() => refresh().catch(() => {})} />
 
   return <section className="space-y-5">
     <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">

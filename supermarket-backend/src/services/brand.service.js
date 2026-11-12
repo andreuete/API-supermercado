@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const brandRepository = require("../repositories/brand.repository");
+const imageService = require("./image.service");
+const { assertNoReferences } = require("../utils/referentialIntegrity");
 
 function validateId(id) {
   if (!id || !mongoose.Types.ObjectId.isValid(id)) {
@@ -15,6 +17,12 @@ function validateSlug(slug) {
     error.statusCode = 400;
     throw error;
   }
+}
+
+function validateNoReferences(id) {
+  return assertNoReferences("la marca", [
+    { exists: brandRepository.hasProducts(id), label: "productos" }
+  ]);
 }
 
 async function createBrand(data) {
@@ -73,6 +81,9 @@ async function updateBrand(id, data) {
 
 async function deleteBrand(id) {
   validateId(id);
+  await getBrandById(id);
+  await validateNoReferences(id);
+  await imageService.softDeleteByEntity("brand", id);
 
   const brand = await brandRepository.softDelete(id);
 
@@ -87,6 +98,9 @@ async function deleteBrand(id) {
 
 async function softDelete(id) {
   validateId(id);
+  await getBrandById(id);
+  await validateNoReferences(id);
+  await imageService.softDeleteByEntity("brand", id);
 
   const brand = await brandRepository.softDelete(id);
 

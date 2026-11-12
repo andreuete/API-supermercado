@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const categoryRepository = require("../repositories/category.repository");
+const imageService = require("./image.service");
+const { assertNoReferences } = require("../utils/referentialIntegrity");
 
 function validateId(id) {
   if (!id || !mongoose.Types.ObjectId.isValid(id)) {
@@ -15,6 +17,13 @@ function validateSlug(slug) {
     error.statusCode = 400;
     throw error;
   }
+}
+
+function validateNoReferences(id) {
+  return assertNoReferences("la categoría", [
+    { exists: categoryRepository.hasProducts(id), label: "productos" },
+    { exists: categoryRepository.hasChildren(id), label: "subcategorías" }
+  ]);
 }
 
 async function createCategory(data) {
@@ -73,6 +82,9 @@ async function updateCategory(id, data) {
 
 async function deleteCategory(id) {
   validateId(id);
+  await getCategoryById(id);
+  await validateNoReferences(id);
+  await imageService.softDeleteByEntity("category", id);
 
   const category = await categoryRepository.softDelete(id);
 
@@ -87,6 +99,9 @@ async function deleteCategory(id) {
 
 async function softDelete(id) {
   validateId(id);
+  await getCategoryById(id);
+  await validateNoReferences(id);
+  await imageService.softDeleteByEntity("category", id);
 
   const category = await categoryRepository.softDelete(id);
 

@@ -1,10 +1,9 @@
 import { apiRootClient } from './apiClient'
 import productService from './productService'
+import { idOf } from '../utils/recordIds'
 
 const paths = { user: '/users', role: '/roles' }
 const unwrap = (response) => response?.data?.data
-const idOf = (record) => String(record?.id ?? record?._id ?? '')
-
 export async function listManagedRecords(entity) {
   if (entity === 'variant') {
     const products = await productService.getAll()

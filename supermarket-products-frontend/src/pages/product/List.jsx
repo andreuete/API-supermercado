@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowDownToLine, Boxes, PackageCheck, PackageX, RefreshCw, TrendingUp } from 'lucide-react'
 import { useProducts } from '../../hooks/useProducts'
@@ -9,7 +8,6 @@ import { getErrorMessage } from '../../utils/errorHandler'
 
 export default function List() {
   const { products, loading, error, refresh, softDeleteProduct, restoreProduct, toggleActive, changeStatus } = useProducts()
-  useEffect(() => { refresh().catch(() => {}) }, [])
   const active = products.filter((p) => p.isActive === true || p.status === 'active').length
   const inactive = products.filter((p) => p.isActive === false || (p.status && p.status !== 'active' && !p.deletedAt)).length
   const lowStock = products.filter((p) => Number(p.stock) <= 5 && !p.deletedAt).length

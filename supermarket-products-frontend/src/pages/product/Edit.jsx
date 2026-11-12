@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import ProductForm from '../../features/products/ProductForm'
 import { FormSkeleton } from '../../components/Skeleton'
 import ErrorState from '../../components/Error'
 import { useProducts } from '../../hooks/useProducts'
+import { useProductForm } from '../../hooks/useProductForm'
 
 export default function Edit() {
   const { id } = useParams()
@@ -32,10 +33,11 @@ export default function Edit() {
     }
   }, [id])
 
-  const submit = async (values) => {
-    await updateProduct(id, values)
+  const save = useCallback(async (payload) => {
+    await updateProduct(id, payload)
     navigate('/')
-  }
+  }, [id, navigate, updateProduct])
+  const form = useProductForm({ initialValues: product, mode: 'edit', save })
 
   if (loading) {
     return (
@@ -63,7 +65,7 @@ export default function Edit() {
           Modifica los datos de {product.name || product.nombre}.
         </p>
       </div>
-      <ProductForm initialValues={product} mode="edit" onSubmit={submit} submitting={mutating} />
+      <ProductForm initialValues={product} {...form} mode="edit" submitting={mutating} />
     </div>
   )
 }

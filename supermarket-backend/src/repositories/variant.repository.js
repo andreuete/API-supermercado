@@ -1,4 +1,5 @@
 const Product = require("../models/product.model");
+const { generateSku } = require("../utils/sku");
 
 class VariantRepository {
   // Obtiene todas las variantes de un producto
@@ -14,11 +15,39 @@ class VariantRepository {
     return product.variants.find((v) => v.sku === sku.toUpperCase()) || null;
   }
 
+  async existsBySku(sku, productId, currentSku) {
+    const upperSku = sku.trim().toUpperCase();
+    const products = await Product.find({ "variants.sku": upperSku }).select("_id variants.sku");
+
+    return products.some((product) => {
+      const matchingVariants = product.variants.filter((variant) => variant.sku === upperSku);
+      const isCurrentProduct = String(product._id) === String(productId);
+      const excludesCurrentVariant = isCurrentProduct && currentSku?.toUpperCase() === upperSku;
+
+      return matchingVariants.length > (excludesCurrentVariant ? 1 : 0);
+    });
+  }
+
+  async generateSkuForProduct(productId) {
+    const product = await Product.findById(productId).select("name category");
+    if (!product) return null;
+
+    return generateSku(product.category?.name, product.name);
+  }
+
   // Agrega una variante a un producto
   async addVariant(productId, variantData) {
+    const product = await Product.findById(productId).select("name category");
+    if (!product) return null;
+
+    const variantWithSku = {
+      ...variantData,
+      sku: variantData.sku?.trim() || generateSku(product.category?.name, product.name)
+    };
+
     return Product.findByIdAndUpdate(
       productId,
-      { $push: { variants: variantData } },
+      { $push: { variants: variantWithSku } },
       { new: true, runValidators: true }
     ).select("variants");
   }

@@ -1,4 +1,5 @@
 const Brand = require("../models/brand.model");
+const Product = require("../models/product.model");
 const { generateSlug } = require("../models/brand.model");
 
 class BrandRepository {
@@ -26,6 +27,10 @@ class BrandRepository {
 
   async findActive() {
     return Brand.find({ is_active: true, deleted_at: null }).sort({ created_at: -1, _id: -1 });
+  }
+
+  async hasProducts(id) {
+    return Boolean(await Product.exists({ "brand.id": id }));
   }
 
   async updateById(id, data) {

@@ -1,5 +1,8 @@
 const mongoose = require("mongoose");
 const productRepository = require("../repositories/product.repository");
+const imageService = require("./image.service");
+const { generateSlug } = require("../utils/slug");
+const { assertNoReferences } = require("../utils/referentialIntegrity");
 
 function validateId(id) {
   if (!id || !mongoose.Types.ObjectId.isValid(id)) {
@@ -9,7 +12,7 @@ function validateId(id) {
   }
 }
 
-function validateSlug(slug) {
+function validateSlugFormat(slug) {
   if (!slug || typeof slug !== "string" || !slug.trim()) {
     const error = new Error("Slug de producto no válido");
     error.statusCode = 400;
@@ -17,7 +20,19 @@ function validateSlug(slug) {
   }
 }
 
+async function validateSlug(slug, excludeId) {
+  validateSlugFormat(slug);
+
+  const existingProduct = await productRepository.findBySlug(generateSlug(slug));
+  if (existingProduct && String(existingProduct._id) !== String(excludeId)) {
+    const error = new Error("El slug del producto ya existe");
+    error.statusCode = 409;
+    throw error;
+  }
+}
+
 async function createProduct(data) {
+  await validateSlug(data.slug || data.name);
   const product = await productRepository.create(data);
 
   if (!product) {
@@ -48,7 +63,7 @@ async function getProductById(id) {
 }
 
 async function getProductBySlug(slug) {
-  validateSlug(slug);
+  validateSlugFormat(slug);
 
   const normalizedSlug = slug.trim().toLowerCase();
   const product = await productRepository.findBySlug(normalizedSlug);
@@ -68,8 +83,8 @@ async function getActiveProducts() {
 
 async function updateProduct(id, data) {
   validateId(id);
-  if (data.slug !== undefined) {
-    validateSlug(data.slug);
+  if (data.slug !== undefined || data.name !== undefined) {
+    await validateSlug(data.slug || data.name, id);
   }
 
   const product = await productRepository.updateById(id, data);
@@ -85,6 +100,8 @@ async function updateProduct(id, data) {
 
 async function deleteProduct(id) {
   validateId(id);
+  await getProductById(id);
+  await imageService.softDeleteByEntity("product", id);
 
   const product = await productRepository.softDelete(id);
 
@@ -99,6 +116,8 @@ async function deleteProduct(id) {
 
 async function softDelete(id) {
   validateId(id);
+  await getProductById(id);
+  await imageService.softDeleteByEntity("product", id);
 
   const product = await productRepository.softDelete(id);
 

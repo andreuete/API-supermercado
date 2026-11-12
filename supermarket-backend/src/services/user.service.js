@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const userRepository = require("../repositories/user.repository");
+const profileRepository = require("../repositories/profile.repository");
 const { hashPassword } = require("../utils/password");
 
 function validateId(id) {
@@ -19,7 +20,12 @@ function validateSlug(slug) {
 }
 
 async function createUser(data) {
-  return userRepository.create({ ...data, password: hashPassword(data.password) });
+  const user = await userRepository.create({
+    ...data,
+    password: await hashPassword(data.password)
+  });
+  await profileRepository.createForUser(user._id);
+  return user;
 }
 
 async function getUsers(filter) {
@@ -80,7 +86,7 @@ async function updateUser(id, data) {
   validateId(id);
 
   const updateData = { ...data };
-  if (updateData.password) updateData.password = hashPassword(updateData.password);
+  if (updateData.password) updateData.password = await hashPassword(updateData.password);
 
   const user = await userRepository.updateById(id, updateData);
 

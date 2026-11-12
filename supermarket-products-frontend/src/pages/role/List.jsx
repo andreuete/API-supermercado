@@ -1,5 +1,7 @@
 import ManagementList from '../../features/management/ManagementList'
+import { useRoles } from '../../hooks/useRoles'
 
 export default function RoleList() {
-  return <ManagementList entity="role" />
+  const management = useRoles()
+  return <ManagementList entity="role" {...management} />
 }

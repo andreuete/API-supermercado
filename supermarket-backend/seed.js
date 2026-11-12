@@ -1,32 +1,22 @@
 /**
  * Seed del supermercado.
  * Uso:  node seed.js
- * Requiere: mongoose (y opcionalmente bcryptjs para hashear contraseñas).
+ * Requiere: las dependencias instaladas desde package.json.
  * Variable de entorno: MONGODB_URI (por defecto mongodb://127.0.0.1:27017/supermercado)
  *
  * Coloca este archivo junto a la carpeta /models.
  * ATENCIÓN: borra el contenido de todas las colecciones antes de insertar.
  */
+require("dotenv").config();
+
 const mongoose = require("mongoose");
-const crypto = require("crypto");
-const { Category, Brand, Product, Image, Role, User } = require("./src/models");
+const { Category, Brand, Product, Image, Role, User, Profile } = require("./src/models");
 const { generateSlug } = require("./src/utils/slug");
+const { hashPassword } = require("./src/utils/password");
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/supermarket";
 
 // ---------- Utilidades ----------
-function hashPassword(plain) {
-  try {
-    const bcrypt = require("bcryptjs");
-    return bcrypt.hashSync(plain, 10);
-  } catch (_) {
-    // Fallback sin dependencias externas (scrypt)
-    const salt = crypto.randomBytes(16).toString("hex");
-    const hash = crypto.scryptSync(plain, salt, 64).toString("hex");
-    return `scrypt$${salt}$${hash}`;
-  }
-}
-
 const snapshot = (doc) => ({ id: doc._id, slug: doc.slug, name: doc.name });
 const published = { is_active: true, status: "published" };
 
@@ -200,7 +190,7 @@ async function seed() {
   await mongoose.connect(MONGODB_URI);
   console.log(`Conectado a ${MONGODB_URI}`);
 
-  const collections = [Category, Brand, Product, Image, Role, User];
+  const collections = [Category, Brand, Product, Image, Role, User, Profile];
   const documentCounts = await Promise.all(collections.map((model) => model.countDocuments()));
   if (documentCounts.some((count) => count > 0)) {
     throw new Error("La base de datos no está vacía; el seed no modifica ni elimina datos existentes.");
@@ -216,14 +206,15 @@ async function seed() {
 
   // Usuarios
   const users = await User.create(
-    usersData.map(({ roles: roleNames, password, ...u }) => ({
+    await Promise.all(usersData.map(async ({ roles: roleNames, password, ...u }) => ({
       is_active: true,
       status: "published",
       ...u,
-      password: hashPassword(password),
+      password: await hashPassword(password),
       role_ids: roleNames.map((n) => roleByName[n]._id)
-    }))
+    })))
   );
+  const profiles = await Profile.create(users.map((user) => ({ user_id: user._id })));
 
   // Categorías (primero padres, luego hijas con parent_id)
   const parents = await Category.create(parentCategories.map((c) => ({ ...c, ...published })));
@@ -286,6 +277,7 @@ async function seed() {
   console.log("Seed completado:");
   console.log(`  Roles:      ${roles.length}`);
   console.log(`  Usuarios:   ${users.length}`);
+  console.log(`  Perfiles:   ${profiles.length}`);
   console.log(`  Categorías: ${parents.length + children.length} (${parents.length} raíz, ${children.length} subcategorías)`);
   console.log(`  Marcas:     ${brands.length}`);
   console.log(`  Productos:  ${products.length}`);

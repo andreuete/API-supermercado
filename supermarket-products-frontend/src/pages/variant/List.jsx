@@ -1,5 +1,7 @@
 import ManagementList from '../../features/management/ManagementList'
+import { useVariants } from '../../hooks/useVariants'
 
 export default function VariantList() {
-  return <ManagementList entity="variant" />
+  const management = useVariants()
+  return <ManagementList entity="variant" {...management} />
 }

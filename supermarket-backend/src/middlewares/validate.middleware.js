@@ -1,5 +1,3 @@
-const { ZodError } = require("zod");
-
 /**
  * Middleware factory que valida req.body contra un esquema Zod.
  * Si la validación falla, lanza un error 400 que captura el errorHandler central.
@@ -17,7 +15,7 @@ function validateBody(schema) {
       validationError.statusCode = 400;
       validationError.isZodError = true;
       // Extraemos los mensajes de cada campo inválido de manera legible
-      validationError.errors = result.error.errors.map((e) => ({
+      validationError.errors = result.error.issues.map((e) => ({
         campo: e.path.join(".") || "body",
         mensaje: e.message
       }));
