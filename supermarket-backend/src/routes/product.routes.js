@@ -6,6 +6,9 @@ const { createProductSchema, updateProductSchema, changeStatusSchema } = require
 
 const router = express.Router();
 
+//authenticate
+//authorizePermissions
+
 /**
  * @swagger
  * tags:

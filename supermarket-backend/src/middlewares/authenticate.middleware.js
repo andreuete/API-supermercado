@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const User = require("../models/user.model");
+const revokeTokenRepository = require("../repositories/revoke-token.repository");
 const { verifyToken } = require("../utils/jwt");
+const { hashToken } = require("../utils/token-hash");
 
 function unauthorized(res) {
   return res.status(401).json({ success: false, message: "Autenticación requerida o token inválido" });
@@ -27,11 +29,17 @@ async function authenticate(req, res, next) {
   }
 
   try {
+    if (await revokeTokenRepository.isRevoked(hashToken(match[1]))) {
+      return unauthorized(res);
+    }
+
     const user = await User.findById(payload.sub)
       .populate("role_ids", "name slug permissions is_active deleted_at");
     if (!user || !user.is_active || user.deleted_at) return unauthorized(res);
 
     req.user = user;
+    req.authToken = match[1];
+    req.authPayload = payload;
     return next();
   } catch (error) {
     return next(error);

@@ -5,5 +5,6 @@ module.exports = {
   Image: require("./image.model"),
   Role: require("./role.model"),
   User: require("./user.model"),
-  Profile: require("./profile.model")
+  Profile: require("./profile.model"),
+  RevokeToken: require("./revoke-token.model")
 };

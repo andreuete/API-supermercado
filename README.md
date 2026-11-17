@@ -101,10 +101,11 @@ JWT_EXPIRES_IN=1h
 
 #### **Autenticación y perfil**
 
-- `POST /api/auth/login` recibe `{ "email": "...", "password": "..." }` y devuelve un JWT y los datos del usuario.
+- `POST /api/auth/login` recibe `{ "email": "...", "password": "..." }` y devuelve `token`, `roles` asignados al usuario y sus datos en `user`.
+- `POST /api/auth/logout` requiere autenticación y revoca el JWT actual; los usos posteriores de ese token reciben `401`.
 - Envía el token en las rutas protegidas como `Authorization: Bearer <token>`.
 - `GET /api/profile` obtiene el perfil del usuario autenticado; `PATCH /api/profile` actualiza su avatar con `{ "avatar": "https://..." }` o lo elimina con `{ "avatar": null }`.
-- Las rutas de gestión `/api/users` y `/api/roles` requieren autenticación y los permisos `users:read`/`users:write` o `roles:read`/`roles:write`, respectivamente. El rol de administrador creado por el seed tiene todos los permisos.
+- La autorización usa los roles activos y no eliminados del usuario. Los permisos requeridos para `/api/users` son `users:read`/`users:write` y para `/api/roles`, `roles:read`/`roles:write`; el permiso `*` concede acceso completo. El rol de administrador creado por el seed tiene ese permiso.
 - Las contraseñas se guardan usando Argon2id. Los hashes scrypt existentes se actualizan automáticamente a Argon2 en el siguiente inicio de sesión correcto.
 
 #### **Población de la Base de Datos (Seed)**

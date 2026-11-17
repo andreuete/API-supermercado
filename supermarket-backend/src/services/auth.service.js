@@ -1,5 +1,7 @@
 const userRepository = require("../repositories/user.repository");
+const revokeTokenRepository = require("../repositories/revoke-token.repository");
 const { createToken } = require("../utils/jwt");
+const { hashToken } = require("../utils/token-hash");
 const { hashPassword, needsRehash, verifyPassword } = require("../utils/password");
 
 function invalidCredentials() {
@@ -21,8 +23,22 @@ async function login(email, password) {
 
   return {
     token: createToken({ sub: user._id.toString() }),
+    roles: user.role_ids,
     user: user.toJSON()
   };
 }
 
-module.exports = { login };
+async function logout(token, payload) {
+  if (!Number.isFinite(payload.exp)) {
+    const error = new Error("El token no contiene una fecha de expiración válida");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  await revokeTokenRepository.revoke(
+    hashToken(token),
+    new Date(payload.exp * 1000)
+  );
+}
+
+module.exports = { login, logout };

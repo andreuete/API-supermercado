@@ -34,7 +34,15 @@ const userSchema = new mongoose.Schema(
   baseOptions
 );
 
+userSchema.virtual("profile", {
+  ref: "Profile",
+  localField: "_id",
+  foreignField: "user_id",
+  justOne: true
+});
+
 userSchema.set("toJSON", {
+  virtuals: true,
   transform(_document, returned) {
     delete returned.password;
     return returned;

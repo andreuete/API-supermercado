@@ -9,4 +9,13 @@ async function login(req, res, next) {
   }
 }
 
-module.exports = { login };
+async function logout(req, res, next) {
+  try {
+    await authService.logout(req.authToken, req.authPayload);
+    return res.json({ success: true, message: "Sesión cerrada correctamente" });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+module.exports = { login, logout };

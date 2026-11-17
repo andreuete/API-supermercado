@@ -25,6 +25,7 @@ async function createUser(data) {
     password: await hashPassword(data.password)
   });
   await profileRepository.createForUser(user._id);
+  await user.populate("profile");
   return user;
 }
 

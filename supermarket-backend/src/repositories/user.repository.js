@@ -8,25 +8,33 @@ class UserRepository {
   async findAll(filter = {}) {
     return User.find(filter)
       .populate("role_ids", "name slug permissions")
+      .populate("profile")
       .sort({ created_at: -1, _id: -1 });
   }
 
   async findById(id) {
-    return User.findById(id).populate("role_ids", "name slug permissions");
+    return User.findById(id)
+      .populate("role_ids", "name slug permissions")
+      .populate("profile");
   }
 
   async findBySlug(slug) {
-    return User.findOne({ slug }).populate("role_ids", "name slug permissions");
+    return User.findOne({ slug })
+      .populate("role_ids", "name slug permissions")
+      .populate("profile");
   }
 
   async findByEmail(email) {
-    return User.findOne({ email }).populate("role_ids", "name slug permissions");
+    return User.findOne({ email })
+      .populate("role_ids", "name slug permissions")
+      .populate("profile");
   }
 
   async findByEmailForAuth(email) {
     return User.findOne({ email })
       .select("+password")
-      .populate("role_ids", "name slug permissions");
+      .populate("role_ids", "name slug permissions")
+      .populate("profile");
   }
 
   async updatePassword(id, password) {
@@ -36,12 +44,14 @@ class UserRepository {
   async findActive() {
     return User.find({ is_active: true, deleted_at: null })
       .populate("role_ids", "name slug permissions")
+      .populate("profile")
       .sort({ created_at: -1, _id: -1 });
   }
 
   async updateById(id, data) {
     return User.findByIdAndUpdate(id, data, { new: true, runValidators: true })
-      .populate("role_ids", "name slug permissions");
+      .populate("role_ids", "name slug permissions")
+      .populate("profile");
   }
 
   async softDelete(id) {
@@ -49,7 +59,7 @@ class UserRepository {
       id,
       { deleted_at: new Date(), is_active: false },
       { new: true, runValidators: true }
-    );
+    ).populate("profile");
   }
 
   async restoreDeleted(id) {
@@ -57,7 +67,7 @@ class UserRepository {
       id,
       { deleted_at: null, is_active: true },
       { new: true, runValidators: true }
-    );
+    ).populate("profile");
   }
 
   async changeStatus(id, status) {
@@ -65,7 +75,7 @@ class UserRepository {
       id,
       { status },
       { new: true, runValidators: true }
-    );
+    ).populate("profile");
   }
 
   async setIsActive(id, is_active) {
@@ -73,7 +83,7 @@ class UserRepository {
       id,
       { is_active },
       { new: true, runValidators: true }
-    );
+    ).populate("profile");
   }
 }
 
