@@ -22,6 +22,7 @@ const VariantEdit = lazy(() => import('../pages/variant/Edit'))
 const UserList = lazy(() => import('../pages/user/List'))
 const UserCreate = lazy(() => import('../pages/user/Create'))
 const UserEdit = lazy(() => import('../pages/user/Edit'))
+const Profile = lazy(() => import('../pages/Profile'))
 const RoleList = lazy(() => import('../pages/role/List'))
 const RoleCreate = lazy(() => import('../pages/role/Create'))
 const RoleEdit = lazy(() => import('../pages/role/Edit'))
@@ -40,6 +41,7 @@ export default function AppRoutes() {
         <Route path="/products/new" element={<ProductCreate />} />
         <Route path="/products/:id/edit" element={<ProductEdit />} />
         <Route path="/products/:id" element={<ProductDetail />} />
+        <Route path="/profile" element={<Profile />} />
         <Route path="/brands" element={<BrandList />} />
         <Route path="/brands/new" element={<BrandCreate />} />
         <Route path="/brands/:id/edit" element={<BrandEdit />} />

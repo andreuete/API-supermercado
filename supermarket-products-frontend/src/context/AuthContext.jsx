@@ -43,6 +43,16 @@ export function AuthProvider({ children }) {
     }
   }, [session])
 
+  const updateUser = useCallback((updates) => {
+    if (!session) return
+    const nextSession = {
+      ...session,
+      user: { ...session.user, ...updates },
+    }
+    saveAuthSession(nextSession)
+    setSession(nextSession)
+  }, [session])
+
   const hasPermission = useCallback((permission) => {
     const roles = Array.isArray(session?.roles) ? session.roles : []
     return roles.some((role) => (
@@ -57,8 +67,9 @@ export function AuthProvider({ children }) {
     isAuthenticated: Boolean(session?.token),
     login,
     logout,
+    updateUser,
     hasPermission,
-  }), [session, login, logout, hasPermission])
+  }), [session, login, logout, updateUser, hasPermission])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

@@ -1,5 +1,6 @@
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import { Boxes, LayoutDashboard, LogOut, Package, Plus, Shield, ShoppingBasket, Tags, Users } from 'lucide-react'
+import { Boxes, LayoutDashboard, LogOut, Package, Plus, Shield, ShoppingBasket, Tags, UserRound, Users } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { getErrorMessage, logApiError } from '../utils/errorHandler'
 import { notifyError } from '../utils/alerts'
@@ -7,13 +8,21 @@ import { notifyError } from '../utils/alerts'
 export default function AppLayout() {
   const location = useLocation()
   const { user, logout, hasPermission } = useAuth()
-  const section = ['brands', 'categories', 'variants', 'users', 'roles'].find((path) => location.pathname.startsWith(`/${path}`)) || 'products'
+  const [avatarError, setAvatarError] = useState(false)
+  const avatar = user?.profile?.avatar
+
+  useEffect(() => {
+    setAvatarError(false)
+  }, [avatar])
+
+  const section = ['brands', 'categories', 'variants', 'users', 'roles', 'profile'].find((path) => location.pathname.startsWith(`/${path}`)) || 'products'
   const entityLabel = {
     brands: 'marca',
     categories: 'categoría',
     variants: 'variante',
     users: 'usuario',
     roles: 'rol',
+    profile: 'perfil',
     products: 'producto',
   }[section]
   const isCreate = location.pathname.endsWith('/new')
@@ -25,11 +34,12 @@ export default function AppLayout() {
     variants: 'Variantes',
     users: 'Usuarios',
     roles: 'Roles',
+    profile: 'Mi perfil',
     products: 'Productos',
   }[section]
   const title = isCreate ? `${createLabel} ${entityLabel}` : isEdit ? `Editar ${entityLabel}` : section === 'products' ? 'Inventario' : sectionLabel
   const createPath = `/${section === 'products' ? 'products' : section}/new`
-  const canCreate = section === 'products' || hasPermission(`${section}:write`)
+  const canCreate = section === 'products' || (section !== 'profile' && hasPermission(`${section}:write`))
   const handleLogout = async () => {
     try {
       await logout()
@@ -65,7 +75,14 @@ export default function AppLayout() {
           <div><div className="text-xs font-medium text-slate-400">Mercado / {sectionLabel}</div><h1 className="mt-0.5 text-base font-bold">{title}</h1></div>
         </div>
         <div className="flex items-center gap-2">
-          <span className="hidden max-w-40 truncate text-sm font-medium text-slate-500 sm:block">{user?.full_name || user?.email}</span>
+          <NavLink to="/profile" className="flex min-w-0 items-center gap-2 rounded-xl px-2 py-1.5 hover:bg-slate-100" aria-label="Abrir mi perfil">
+            <span className="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-emerald-50 text-brand">
+              {avatar && !avatarError
+                ? <img src={avatar} alt="" className="h-full w-full object-cover" onError={() => setAvatarError(true)} />
+                : <UserRound size={16} />}
+            </span>
+            <span className="hidden max-w-40 truncate text-sm font-medium text-slate-500 sm:block">{user?.full_name || user?.email}</span>
+          </NavLink>
           <button type="button" onClick={handleLogout} className="btn-secondary" title="Cerrar sesión" aria-label="Cerrar sesión"><LogOut size={16} /><span className="hidden sm:inline">Salir</span></button>
           {canCreate && <NavLink to={createPath} className="btn-primary"><Plus size={16} /><span className="hidden sm:inline">{createLabel} {entityLabel}</span><span className="sm:hidden">Nuevo</span></NavLink>}
         </div>

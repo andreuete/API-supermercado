@@ -20,7 +20,7 @@ const router = express.Router();
  *       401:
  *         description: No autenticado
  *   patch:
- *     summary: Actualizar el avatar del usuario autenticado
+ *     summary: Actualizar los datos del perfil del usuario autenticado
  *     tags: [Profile]
  *     security:
  *       - bearerAuth: []
@@ -30,8 +30,13 @@ const router = express.Router();
  *         application/json:
  *           schema:
  *             type: object
- *             required: [avatar]
  *             properties:
+ *               full_name:
+ *                 type: string
+ *                 minLength: 2
+ *               email:
+ *                 type: string
+ *                 format: email
  *               avatar:
  *                 type: string
  *                 format: uri
