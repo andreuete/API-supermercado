@@ -1,8 +1,12 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import { Boxes, LayoutDashboard, Package, Plus, Shield, ShoppingBasket, Tags, Users } from 'lucide-react'
+import { Boxes, LayoutDashboard, LogOut, Package, Plus, Shield, ShoppingBasket, Tags, Users } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
+import { getErrorMessage, logApiError } from '../utils/errorHandler'
+import { notifyError } from '../utils/alerts'
 
 export default function AppLayout() {
   const location = useLocation()
+  const { user, logout, hasPermission } = useAuth()
   const section = ['brands', 'categories', 'variants', 'users', 'roles'].find((path) => location.pathname.startsWith(`/${path}`)) || 'products'
   const entityLabel = {
     brands: 'marca',
@@ -25,6 +29,15 @@ export default function AppLayout() {
   }[section]
   const title = isCreate ? `${createLabel} ${entityLabel}` : isEdit ? `Editar ${entityLabel}` : section === 'products' ? 'Inventario' : sectionLabel
   const createPath = `/${section === 'products' ? 'products' : section}/new`
+  const canCreate = section === 'products' || hasPermission(`${section}:write`)
+  const handleLogout = async () => {
+    try {
+      await logout()
+    } catch (error) {
+      logApiError(error, 'cerrar sesión')
+      await notifyError(getErrorMessage(error), 'Sesión cerrada localmente')
+    }
+  }
   return <div className="min-h-screen bg-canvas">
     <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col border-r border-slate-100 bg-white px-5 py-7 lg:flex">
       <NavLink to="/" className="flex items-center gap-3 px-2">
@@ -37,8 +50,8 @@ export default function AppLayout() {
         <NavLink to="/brands" className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold ${isActive ? 'bg-emerald-50 text-brand' : 'text-slate-500 hover:bg-slate-50'}`}><Tags size={18} /> Marcas</NavLink>
         <NavLink to="/categories" className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold ${isActive ? 'bg-emerald-50 text-brand' : 'text-slate-500 hover:bg-slate-50'}`}><Boxes size={18} /> Categorías</NavLink>
         <NavLink to="/variants" className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold ${isActive ? 'bg-emerald-50 text-brand' : 'text-slate-500 hover:bg-slate-50'}`}><Package size={18} /> Variantes</NavLink>
-        <NavLink to="/users" className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold ${isActive ? 'bg-emerald-50 text-brand' : 'text-slate-500 hover:bg-slate-50'}`}><Users size={18} /> Usuarios</NavLink>
-        <NavLink to="/roles" className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold ${isActive ? 'bg-emerald-50 text-brand' : 'text-slate-500 hover:bg-slate-50'}`}><Shield size={18} /> Roles</NavLink>
+        {hasPermission('users:read') && <NavLink to="/users" className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold ${isActive ? 'bg-emerald-50 text-brand' : 'text-slate-500 hover:bg-slate-50'}`}><Users size={18} /> Usuarios</NavLink>}
+        {hasPermission('roles:read') && <NavLink to="/roles" className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold ${isActive ? 'bg-emerald-50 text-brand' : 'text-slate-500 hover:bg-slate-50'}`}><Shield size={18} /> Roles</NavLink>}
       </nav>
       <div className="mt-auto rounded-2xl bg-slate-50 p-4">
         <div className="mb-2 flex items-center gap-2 text-sm font-bold"><Boxes size={17} className="text-brand" /> Gestión de stock</div>
@@ -51,15 +64,19 @@ export default function AppLayout() {
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-emerald-50 text-brand lg:hidden"><ShoppingBasket size={19} /></span>
           <div><div className="text-xs font-medium text-slate-400">Mercado / {sectionLabel}</div><h1 className="mt-0.5 text-base font-bold">{title}</h1></div>
         </div>
-        <NavLink to={createPath} className="btn-primary"><Plus size={16} /><span className="hidden sm:inline">{createLabel} {entityLabel}</span><span className="sm:hidden">Nuevo</span></NavLink>
+        <div className="flex items-center gap-2">
+          <span className="hidden max-w-40 truncate text-sm font-medium text-slate-500 sm:block">{user?.full_name || user?.email}</span>
+          <button type="button" onClick={handleLogout} className="btn-secondary" title="Cerrar sesión" aria-label="Cerrar sesión"><LogOut size={16} /><span className="hidden sm:inline">Salir</span></button>
+          {canCreate && <NavLink to={createPath} className="btn-primary"><Plus size={16} /><span className="hidden sm:inline">{createLabel} {entityLabel}</span><span className="sm:hidden">Nuevo</span></NavLink>}
+        </div>
       </header>
       <nav aria-label="Secciones" className="mx-4 mt-3 grid grid-cols-3 gap-2 lg:hidden">
         <NavLink to="/" end className={({ isActive }) => `rounded-xl px-2 py-2 text-center text-sm font-semibold ${isActive ? 'bg-emerald-50 text-brand' : 'text-slate-500'}`}>Productos</NavLink>
         <NavLink to="/brands" className={({ isActive }) => `rounded-xl px-2 py-2 text-center text-sm font-semibold ${isActive ? 'bg-emerald-50 text-brand' : 'text-slate-500'}`}>Marcas</NavLink>
         <NavLink to="/categories" className={({ isActive }) => `rounded-xl px-2 py-2 text-center text-sm font-semibold ${isActive ? 'bg-emerald-50 text-brand' : 'text-slate-500'}`}>Categorías</NavLink>
         <NavLink to="/variants" className={({ isActive }) => `rounded-xl px-2 py-2 text-center text-sm font-semibold ${isActive ? 'bg-emerald-50 text-brand' : 'text-slate-500'}`}>Variantes</NavLink>
-        <NavLink to="/users" className={({ isActive }) => `rounded-xl px-2 py-2 text-center text-sm font-semibold ${isActive ? 'bg-emerald-50 text-brand' : 'text-slate-500'}`}>Usuarios</NavLink>
-        <NavLink to="/roles" className={({ isActive }) => `rounded-xl px-2 py-2 text-center text-sm font-semibold ${isActive ? 'bg-emerald-50 text-brand' : 'text-slate-500'}`}>Roles</NavLink>
+        {hasPermission('users:read') && <NavLink to="/users" className={({ isActive }) => `rounded-xl px-2 py-2 text-center text-sm font-semibold ${isActive ? 'bg-emerald-50 text-brand' : 'text-slate-500'}`}>Usuarios</NavLink>}
+        {hasPermission('roles:read') && <NavLink to="/roles" className={({ isActive }) => `rounded-xl px-2 py-2 text-center text-sm font-semibold ${isActive ? 'bg-emerald-50 text-brand' : 'text-slate-500'}`}>Roles</NavLink>}
       </nav>
       <main className="mx-auto max-w-7xl px-4 py-7 md:px-9 md:py-9"><Outlet /></main>
       <footer className="px-6 pb-6 text-center text-xs text-slate-400">Mercado · Panel de inventario</footer>

@@ -6,6 +6,7 @@ import '@fontsource/manrope/latin-500.css'
 import '@fontsource/manrope/latin-600.css'
 import '@fontsource/manrope/latin-700.css'
 import '@fontsource/ultra/latin-400.css'
+import { AuthProvider } from './context/AuthContext'
 import { ProductProvider } from './context/ProductContext'
 import AppRoutes from './routes/AppRoutes'
 import './styles.css'
@@ -13,9 +14,11 @@ import './styles.css'
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
-      <ProductProvider>
-        <AppRoutes />
-      </ProductProvider>
+      <AuthProvider>
+        <ProductProvider>
+          <AppRoutes />
+        </ProductProvider>
+      </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>
 )

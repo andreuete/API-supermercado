@@ -56,11 +56,11 @@ API-supermercado/
 └── supermarket-products-frontend/        # Cliente SPA (React + Vite + Tailwind CSS)
     ├── src/
     │   ├── components/                   # Componentes UI (Layout, Datatable, Modales, Cards, etc.)
-    │   ├── context/                      # Estado global (ProductContext)
+    │   ├── context/                      # Estado global (AuthContext y ProductContext)
     │   ├── hooks/                        # Custom hooks reutilizables (useProducts)
-    │   ├── pages/                        # Vistas de la aplicación (Listado, Creación, Edición, Detalle)
-    │   ├── routes/                       # Configuración de rutas (AppRoutes)
-    │   ├── services/                     # Cliente Axios y servicios de llamada a la API
+    │   ├── pages/                        # Vistas de la aplicación, incluido el inicio de sesión
+    │   ├── routes/                       # Rutas, guards de autenticación y permisos
+    │   ├── services/                     # Cliente Axios con interceptor y servicios de API
     │   └── utils/                        # Formateadores y utilidades de alertas
     └── package.json
 ```

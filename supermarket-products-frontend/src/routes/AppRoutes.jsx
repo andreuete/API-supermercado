@@ -2,6 +2,9 @@ import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import AppLayout from '../components/AppLayout'
 import { FormSkeleton } from '../components/Skeleton'
+import { useAuth } from '../context/AuthContext'
+import Login from '../pages/Login'
+import ProtectedRoute from './ProtectedRoute'
 
 const ProductList = lazy(() => import('../pages/product/List'))
 const ProductCreate = lazy(() => import('../pages/product/Create'))
@@ -24,9 +27,15 @@ const RoleCreate = lazy(() => import('../pages/role/Create'))
 const RoleEdit = lazy(() => import('../pages/role/Edit'))
 
 export default function AppRoutes() {
+  const { isAuthenticated } = useAuth()
+
   return <Suspense fallback={<div className="mx-auto max-w-4xl p-8"><div className="panel"><FormSkeleton /></div></div>}>
     <Routes>
-      <Route element={<AppLayout />}>
+      <Route
+        path="/login"
+        element={isAuthenticated ? <Navigate to="/" replace /> : <Login />}
+      />
+      <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
         <Route path="/" element={<ProductList />} />
         <Route path="/products/new" element={<ProductCreate />} />
         <Route path="/products/:id/edit" element={<ProductEdit />} />
@@ -40,12 +49,12 @@ export default function AppRoutes() {
         <Route path="/variants" element={<VariantList />} />
         <Route path="/variants/new" element={<VariantCreate />} />
         <Route path="/variants/:productId/:sku/edit" element={<VariantEdit />} />
-        <Route path="/users" element={<UserList />} />
-        <Route path="/users/new" element={<UserCreate />} />
-        <Route path="/users/:id/edit" element={<UserEdit />} />
-        <Route path="/roles" element={<RoleList />} />
-        <Route path="/roles/new" element={<RoleCreate />} />
-        <Route path="/roles/:id/edit" element={<RoleEdit />} />
+        <Route path="/users" element={<ProtectedRoute permission="users:read"><UserList /></ProtectedRoute>} />
+        <Route path="/users/new" element={<ProtectedRoute permission="users:write"><UserCreate /></ProtectedRoute>} />
+        <Route path="/users/:id/edit" element={<ProtectedRoute permission="users:write"><UserEdit /></ProtectedRoute>} />
+        <Route path="/roles" element={<ProtectedRoute permission="roles:read"><RoleList /></ProtectedRoute>} />
+        <Route path="/roles/new" element={<ProtectedRoute permission="roles:write"><RoleCreate /></ProtectedRoute>} />
+        <Route path="/roles/:id/edit" element={<ProtectedRoute permission="roles:write"><RoleEdit /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
